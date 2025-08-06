@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors';
 import { AuthContext } from "@/utils/authContext";
 import { Link } from "expo-router";
 import { useContext, useState } from "react";
@@ -24,38 +25,59 @@ export default function SignInScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Sign In</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        autoCapitalize="none"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <Button title="Sign In" onPress={handleSignIn} />
-      <Link href="/create-account" style={styles.button}>
-        Create Account
-      </Link>
+      <View>
+        <Text style={styles.text}>Sign In</Text>
+      </View>
+      <View>
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          autoCapitalize="none"
+          value={username}
+          onChangeText={setUsername}
+          placeholderTextColor={Colors.light.referenceText}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+          placeholderTextColor={Colors.light.referenceText}
+        />
+        <Button title="Sign In" onPress={handleSignIn} color={Colors.light.gradientBlue} />
+        <Link href="/create-account" style={styles.button}>
+          Create Account
+        </Link>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20 },
-  text: { fontSize: 24, marginBottom: 20 },
+  container: { 
+    display: "flex",
+    justifyContent: "center",
+    height: "100%",
+    padding: 40,
+    gap: 24,
+    paddingBottom: 180,
+  },
+  text: { 
+    fontSize: 32, 
+    fontWeight: "500",
+    color: Colors.light.textPurple,
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    marginBottom: 12,
+    borderColor: Colors.light.textPurple,
+    color: Colors.light.referenceText,
     padding: 10,
     borderRadius: 4,
+    marginBottom: 12,
   },
-  button: { marginTop: 20, color: "blue" },
+  button: { 
+    marginTop: 20, 
+    color: Colors.light.gradientPurpleDark
+  },
 });

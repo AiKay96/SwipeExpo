@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/Colors';
 import { AuthProvider } from "@/utils/authContext";
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -30,7 +31,7 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="(protected)" options={{headerShown: false}} />
             <Stack.Screen name="sign-in" options={{headerShown: false}} />
-            <Stack.Screen name="create-account" options={{headerShown: true, headerTitle: "Go Back to Login Page"}} />
+            <Stack.Screen name="create-account" options={{headerShown: true, headerTitle: "Back to Login", headerTintColor: Colors.light.textPurple}} />
             <Stack.Screen name="+not-found" options={{headerShown: false}} />
           </Stack>
         </ThemeProvider>

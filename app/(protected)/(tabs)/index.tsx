@@ -1,155 +1,321 @@
-import ImageViewer from "@/components/ImageViewer";
-import { Ionicons } from "@expo/vector-icons";
+import { posts } from "@/data/posts";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { LinearGradient } from "expo-linear-gradient";
+import {
+  PanGestureHandler,
+  PanGestureHandlerGestureEvent,
+} from "react-native-gesture-handler";
+import Animated, {
+  interpolate,
+  runOnJS,
+  useAnimatedGestureHandler,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 
 const PlaceholderImage = require("@/assets/images/background-image.png");
-
-const description = "Check out my latest build in React Native Expo! 🚀 This one has animations, transitions, and a super clean UI. Let me know what you think in the comments below.";
+const PlaceholderProfileImage = require("@/assets/images/react-logo.png");
 
 const categories = [
-  "For you",
-  "Movies",
-  "Crochet",
-  "Moto",
-  "Games",
-  "Dota 2",
-  "Counter-Strike 2",
-  "PUBG",
-  "Me",
-  "Shen",
-  "Da",
-  "Varskvlavebi",
-  "Mze",
-  "Ca",
-  "Lurji",
-  "Mdelo",
+  "For you", "Movies", "Crochet", "Moto", "Games", "Dota 2", "Counter-Strike 2",
+  "PUBG", "Me", "Shen", "Da", "Varskvlavebi", "Mze", "Ca", "Lurji", "Mdelo",
 ];
 
+type HeartColor = "none" | "red" | "#fdebf1";
+
 export default function CreatorScreen() {
-  const [showFull, setShowFull] = useState(false);
+  const colorScheme = useColorScheme();
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
 
   return (
-    <View style={styles.container}>
-      {/* Categories Bar */}
+    <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
+      {/* Top Categories | Horizontal Scroll */}
       <View style={{ height: 30, marginVertical: 10 }}>
         <ScrollView
           horizontal={true}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoriesContainer}
         >
-          {categories.map((category, index) => (
-            <View key={category} style={styles.categoryWrapper}>
-              <Text style={styles.categoryText}>{category}</Text>
-              {index !== categories.length - 1 && (
-                <View style={styles.separator} />
-              )}
-            </View>
-          ))}
+          <View style={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+            {categories.map((category, index) => (
+              <View key={index} style={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+                <Text style={styles.categoryUpText}>{category}</Text>
+                {index !== categories.length - 1 && (
+                  <View style={styles.separator} />
+                )}
+              </View>
+            ))}
+          </View>
         </ScrollView>
       </View>
 
-      <ImageViewer imgSource={PlaceholderImage} />
+      {/* Posts Feed | Vertical Scroll */}
+      {posts.map((post) => {
+        const isExpanded = expandedPostId === post.id;
 
-      {/* First Line: Category + Icons */}
-      <View style={styles.metaRow}>
-        <Text style={styles.categoryText}>Tech</Text>
-        <View style={styles.iconGroup}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="chatbubble-outline" size={22} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="bookmark-outline" size={22} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </View>
+        const rotation = useSharedValue(0);
+        const heartState = useSharedValue<HeartColor>("none");
 
-      {/* Second Line: Description */}
-      <TouchableOpacity onPress={() => setShowFull(!showFull)}>
-        <Text
-          style={styles.descriptionText}
-          numberOfLines={showFull ? undefined : 2}
-        >
-          {description}
-          {!showFull && description.length > 100 && "... more"}
-        </Text>
-      </TouchableOpacity>
+        const [localHeart, setLocalHeart] = useState<HeartColor>("none");
 
-      <View style={styles.hashtagRow}>
-        <Text style={styles.hashtag}>#science</Text>
-        <Text style={styles.hashtag}>#rocket</Text>
-        <Text style={styles.hashtag}>#reactnative</Text>
-      </View>
-    </View>
+        useAnimatedReaction(
+          () => heartState.value,
+          (value) => {
+            runOnJS(setLocalHeart)(value);
+          }
+        );
+
+        const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent>({
+          onStart: (_, ctx: any) => {
+            ctx.startX = 0;
+          },
+          onActive: (event, ctx: any) => {
+            const x = event.translationX;
+            rotation.value = interpolate(x, [-100, 0, 100], [-40, 0, 40]);
+
+            if (x > 30) {
+              heartState.value = "red";
+            } else if (x < -30) {
+              heartState.value = "#fdebf1";
+            } else {
+              heartState.value = "none";
+            }
+          },
+          onEnd: () => {
+            rotation.value = withSpring(0);
+            heartState.value = "none";
+          },
+        });
+
+        const animatedStyle = useAnimatedStyle(() => {
+          return {
+            transform: [
+              { translateY: 200 }, // move pivot point to bottom
+              { rotateZ: `${rotation.value}deg` },
+              { translateY: -200 }, // move back
+            ],
+          };
+        });
+
+        return (
+          <LinearGradient 
+            key={post.id} 
+            style={styles.postCard} 
+            colors={[Colors.light.gradientMid, Colors.light.gradientBlue]} 
+            start={{ x: 1, y: 1 }} 
+            end={{ x: 0, y: 0 }}
+          >
+            {/* First Line */}
+            <View style={styles.firstLine}>
+              <View style={styles.iconButton}>
+                <MaterialCommunityIcons
+                  name={
+                    localHeart === "#fdebf1" ? "heart-broken" : "heart-broken-outline"
+                  }
+                  size={28}
+                  // color={
+                  //   localHeart === "#fdebf1" ? "#fdebf1" : "#fdebf1"
+                  // }
+                  color={"#fdebf1"}
+                />
+              </View>
+              <Text style={styles.usernameText}>@{post.username}</Text>
+              <View style={styles.iconButton}>
+                <MaterialCommunityIcons
+                  name={
+                    localHeart === "red" ? "heart" : "heart-outline"
+                  }
+                  size={28}
+                  // color={
+                  //   localHeart === "red" ? "red" : "#080e0e"
+                  // }
+                  color={"#fdebf1"}
+                />
+              </View>
+                {/* <Image
+                  source={{ uri: post.profileImage }}
+                  style={styles.profileImage}
+                  defaultSource={PlaceholderProfileImage}
+                  onError={(e) =>
+                    console.log("Image failed to load:", e.nativeEvent.error)
+                  }
+                /> */}
+            </View>
+
+            {/* Second Line -Image */}
+            <PanGestureHandler onGestureEvent={gestureHandler}>
+              <Animated.View style={[styles.image, animatedStyle]}>
+                <Image
+                  source={{ uri: post.image }}
+                  style={StyleSheet.absoluteFill}
+                  defaultSource={PlaceholderImage}
+                  onError={(e) =>
+                    console.log("Image failed to load:", e.nativeEvent.error)
+                  }
+                />
+              </Animated.View>
+            </PanGestureHandler>
+
+            {/* Third Line */}
+            <View style={styles.metaRow}>
+              <LinearGradient
+                colors={[Colors.light.gradientPink, Colors.light.gradientMid, Colors.light.gradientBlue]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.imageBelowFirstLine}
+              >
+                <Text style={styles.categoryText}>{post.title}</Text>
+              </LinearGradient>
+              <View style={styles.iconGroup}>
+                <TouchableOpacity style={styles.iconButton}>
+                  <Ionicons name="chatbubble-outline" size={22} color={Colors.light.gradientPurpleDark} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconButton}>
+                  <Ionicons name="bookmark-outline" size={22} color={Colors.light.gradientBlueDark} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Fourth Line - Description */}
+            <TouchableOpacity
+              onPress={() => setExpandedPostId(isExpanded ? null : post.id)}
+            >
+              <Text
+                style={styles.descriptionText}
+                numberOfLines={isExpanded ? undefined : 2}
+              >
+                {post.description}
+                {!isExpanded && post.description.length > 100 && "... more"}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Fifth Line - Hashtags */}
+            <View style={styles.hashtagRow}>
+              {post.hashtags.map((tag, index) => (
+                <Text key={index} style={styles.hashtag}>{tag}</Text>
+              ))}
+            </View>
+          </LinearGradient>
+        );
+      })}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollView: {
+    backgroundColor: "#fff",
+  },
   container: {
-    flex: 1,
-    backgroundColor: "#0b0e16",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
+    padding: 16,
+    paddingBottom: 32,
   },
   categoriesContainer: {
     alignItems: "center",
   },
-  categoryWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    // maxHeight: 30,
-  },
-  // categoryText: {
-  //   color: "#ffd33d",
-  //   fontSize: 16,
-  //   paddingHorizontal: 8,
-  // },
   separator: {
-    width: 1,
-    height: 16,
-    backgroundColor: "#86bcf8",
+    width: 2,
+    height: 20,
+    backgroundColor: Colors.light.iconLight,
     opacity: 0.7,
   },
-  metaRow: {
-    marginTop: 12,
-    width: 320,
+  usernameText: {
+    color: Colors.light.pink,
+    fontSize: 16,
+    fontWeight: "500",
+    paddingBottom: 2,
+  },
+  categoryUpText: {
+    color: Colors.light.textPurple,
+    fontSize: 16,
+    fontWeight: "500",
+    paddingHorizontal: 13,
+    paddingBottom: 1.5,
+  },
+  postCard: {
+    marginBottom: 24,
+    borderRadius: 32,
+    padding: 12,
+  },
+  firstLine: {
+    display: "flex",
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-around",
     alignItems: "center",
+  },
+  image: {
+    width: "100%",
+    height: 400,
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: "#222", // fallback
+  },
+  imageBelowFirstLine: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderRadius: 10,
+    overflow: "hidden",
   },
   categoryText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: 500,
+    fontWeight: "500",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  profileImage: {
+    width: 28,
+    height: 28,
+    borderRadius: 40,
+    overflow: "hidden",
+  },
+  metaRow: {
+    marginTop: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   iconGroup: {
     flexDirection: "row",
     gap: 16,
   },
   iconButton: {
-    padding: 4,
+    paddingHorizontal: 1,
+    paddingVertical: 4,
   },
   descriptionText: {
     marginTop: 8,
-    width: 320,
-    color: "#ddd",
+    color: Colors.light.descriptionPink,
     fontSize: 14,
     lineHeight: 20,
   },
-  seeMore: {
-    color: "#858585ff",
-  },
   hashtagRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    alignItems: "center",
     marginTop: 8,
-    width: 320,
     gap: 8,
   },
   hashtag: {
-    color: "#86bcf8",
+    color: Colors.light.referenceText,
     fontSize: 13,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: Colors.light.referenceBack,
+    borderRadius: 10,
   },
 });

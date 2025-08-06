@@ -1,18 +1,44 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Colors } from '@/constants/Colors';
+import { AntDesign, FontAwesome5, Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { Tabs } from "expo-router";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Image, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+
+const PlaceholderProfileImage = require("@/assets/images/swipe-logo.png");
 
 function CustomHeader() {
   return (
     <View style={styles.headerContainer}>
-      <Text style={styles.title}>Swipe</Text>
-      <View style={styles.searchWrapper}>
-        <Ionicons name="search" size={18} color="#999" style={styles.searchIcon} />
-        <TextInput
-          placeholder="Search"
-          placeholderTextColor="#999"
-          style={styles.searchInput}
-        />
+      {/* <Text style={styles.title}>Swipe</Text> */}
+      <Image
+        // source={{ uri: post.profileImage }}
+        source={PlaceholderProfileImage}
+        style={styles.profileImage}
+        defaultSource={PlaceholderProfileImage}
+        onError={(e) =>
+          console.log("Image failed to load:", e.nativeEvent.error)
+        }
+      />
+      <View style={{display: "flex", flexDirection: "row", alignItems: "center", gap: 10}}>
+        <LinearGradient 
+          style={styles.searchWrapper} 
+          colors={[Colors.light.gradientPink, Colors.light.gradientBlue]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <Ionicons name="search" size={18} color={Colors.light.textPurple} style={styles.searchIcon} />
+          <TextInput
+            placeholder="Search"
+            placeholderTextColor={Colors.light.textPurple}
+            style={styles.searchInput}
+          />
+        </LinearGradient>
+        <TouchableOpacity 
+          style={{}}
+          // onPress={() => setModalVisible(true)}
+        >
+          <AntDesign name="message1" size={22} color={Colors.light.textPurple} />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -23,15 +49,16 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerTitle: () => <CustomHeader />,
-        tabBarActiveTintColor: "#f88d97", 
+        tabBarActiveTintColor: Colors.light.iconDark, 
+        tabBarInactiveTintColor: Colors.light.iconLight,
         tabBarShowLabel: false,
         headerStyle: {
-          backgroundColor: "#0b0e16",
+          backgroundColor: "#fff",
         },
         headerShadowVisible: false,
         headerTintColor: "#fff",
         tabBarStyle: {
-          backgroundColor: "#0b0e16",
+          backgroundColor: "#fff",
         },
       }}
     >
@@ -40,7 +67,7 @@ export default function TabsLayout() {
         options={{
           tabBarIcon: ({focused, color}) => (
             <Ionicons 
-              name={focused ? "briefcase" : "briefcase-outline"} 
+              name={focused ? "home" : "home-outline"} 
               size={24} 
               color={color} 
             />
@@ -51,9 +78,10 @@ export default function TabsLayout() {
         name="personal"
         options={{
           tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name={focused ? "person" : "person-outline"}
-              size={24}
+            <FontAwesome5
+              name="user-friends"
+              // name={focused ? "user-friends" : "person-outline"}
+              size={20}
               color={color}
             />
           ),
@@ -72,11 +100,11 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="messages"
+        name="suggests"
         options={{
           tabBarIcon: ({ focused, color }) => (
             <Ionicons
-              name={focused ? "chatbubble" : "chatbubble-outline"}
+              name={focused ? "heart" : "heart-outline"}
               size={24}
               color={color}
             />
@@ -109,25 +137,32 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    color: "#fff",
+    color: "#080e0e",
     fontSize: 20,
     fontWeight: "bold",
+    paddingBottom: 2,
   },
   searchWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#333",
-    borderRadius: 8,
+    backgroundColor: "#f2f7fa",
+    borderRadius: 10,
     paddingHorizontal: 8,
     height: 36,
-    width: 160,
+    width: 140,
   },
   searchIcon: {
     marginRight: 6,
   },
   searchInput: {
-    color: "#fff",
     flex: 1,
     fontSize: 14,
+    paddingBottom: 9,
+  },
+  profileImage: {
+    width: 120,
+    height: 40,
+    resizeMode: "contain",
+    marginTop: 6
   },
 });

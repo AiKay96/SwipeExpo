@@ -1,8 +1,16 @@
-# Welcome to your Expo app 👋
+# Expo App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is an Expo project created with create-expo-app.
 
-## Get started
+## Getting Started
+
+### Prerequisites
+
+- Node.js and npm installed
+- Android Studio for Android emulation
+- Expo Go app for mobile testing
+
+### Installation
 
 1. Install dependencies
 
@@ -10,41 +18,39 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Create .env file in the project root and add the following lines:
+
+   ```
+   EXPO_PUBLIC_API_URL=http://localhost:8000
+   EXPO_PUBLIC_API_URL_ALTERNATIVE=http://10.0.2.2:8000
+   ```
+
+3. Download and install Android Studio from https://developer.android.com/studio
+
+4. Set up a Pixel 4a virtual device in Android Studio. Follow the Expo guide at https://docs.expo.dev/workflow/android-studio-emulator/
+
+### Running the App
+
+1. Start the development server
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+2. In the terminal output, choose an option to run the app:
+   - Development build
+   - Android emulator
+   - iOS simulator
+   - Expo Go app
+   - Web browser (press 'w' in the terminal)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+3. For Expo Go, scan the QR code displayed in the terminal. For web development, press 'w' to open in a browser.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Development
 
-## Get a fresh project
+Edit files in the app directory to develop your project. This project uses file-based routing.
 
-When you're ready, run:
+## Learn More
 
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Expo Documentation: https://docs.expo.dev/ for fundamentals and advanced guides
+- Learn Expo Tutorial: https://docs.expo.dev/tutorial/introduction/ for a step-by-step project setup

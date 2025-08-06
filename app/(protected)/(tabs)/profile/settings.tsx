@@ -1,4 +1,6 @@
+import { Colors } from '@/constants/Colors';
 import { AuthContext } from "@/utils/authContext";
+import { AntDesign } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useContext, useEffect, useState } from "react";
 import {
@@ -9,7 +11,8 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  View,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 const API_URL =
@@ -17,7 +20,11 @@ const API_URL =
     ? process.env.EXPO_PUBLIC_API_URL_ALTERNATIVE
     : process.env.EXPO_PUBLIC_API_URL;
 
-export default function SettingsScreen() {
+type Props = {
+  onClose: () => void;
+};
+
+export default function SettingsModalContent({ onClose }: Props) {
   const authState = useContext(AuthContext);
 
   const [userData, setUserData] = useState({
@@ -102,20 +109,28 @@ export default function SettingsScreen() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator color="#f88d97" />
+        <ActivityIndicator color={Colors.light.gradientPink} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      <View style={{position: "absolute", top: 1, right: 1}}>
+        <TouchableOpacity 
+          style={{position: "absolute", top: 16, right: 16}}
+          onPress={onClose}
+        >
+          <AntDesign name="closecircle" size={32} color={Colors.light.iconDark} />
+        </TouchableOpacity>
+      </View>
       <Text style={styles.label}>Username</Text>
       <TextInput
         style={styles.input}
         value={userData.username}
         onChangeText={(text) => setUserData({ ...userData, username: text })}
         placeholder="Username"
-        placeholderTextColor="#888"
+        placeholderTextColor={Colors.light.referenceText}
       />
 
       <Text style={styles.label}>Display Name</Text>
@@ -124,7 +139,7 @@ export default function SettingsScreen() {
         value={userData.display_name}
         onChangeText={(text) => setUserData({ ...userData, display_name: text })}
         placeholder="Display Name"
-        placeholderTextColor="#888"
+        placeholderTextColor={Colors.light.referenceText}
       />
 
       <Text style={styles.label}>Bio</Text>
@@ -134,18 +149,17 @@ export default function SettingsScreen() {
         value={userData.bio}
         onChangeText={(text) => setUserData({ ...userData, bio: text })}
         placeholder="Your bio..."
-        placeholderTextColor="#888"
+        placeholderTextColor={Colors.light.referenceText}
       />
-
-      <Button
-        title={updating ? "Updating..." : "Update Profile"}
-        onPress={handleUpdate}
-        disabled={updating}
-      />
-
-      <View style={{ height: 20 }} />
-
-      <Button title="Log Out" onPress={authState.logOut} color="#f88d97" />
+      <View style={{display: "flex", gap: 10, paddingTop: 10}}>
+        <Button
+          title={updating ? "Updating..." : "Update Profile"}
+          onPress={handleUpdate}
+          disabled={updating}
+          color={Colors.light.gradientBlue}
+        />
+        <Button title="Log Out" onPress={authState.logOut} color={Colors.light.gradientPink} />
+      </View>
     </View>
   );
 }
@@ -153,20 +167,22 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0b0e16",
+    backgroundColor: "#fff",
     padding: 20,
     justifyContent: "center",
+    position: "relative"
   },
   label: {
-    color: "white",
+    color: Colors.light.textPurple,
     marginBottom: 4,
     marginTop: 16,
   },
   input: {
-    backgroundColor: "#1a1d29",
-    color: "white",
+    borderWidth: 1,
+    borderColor: Colors.light.textPurple,
+    color: Colors.light.referenceText,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: 4,
   },
   bio: {
     height: 80,

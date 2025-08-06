@@ -9,6 +9,6 @@ export default function PersonalScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#0b0e16" },
-  text: { color: "white" },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#fff" },
+  text: { color: "#080e0e" },
 });
