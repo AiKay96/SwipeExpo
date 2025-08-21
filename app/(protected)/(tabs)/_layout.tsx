@@ -1,7 +1,9 @@
+import CreatePostModal from '@/components/CreatePostModal';
 import { Colors } from '@/constants/Colors';
 import { AntDesign, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Tabs } from "expo-router";
+import { useState } from 'react';
 import { Image, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 const PlaceholderProfileImage = require("@/assets/images/swipe-logo.png");
@@ -9,9 +11,7 @@ const PlaceholderProfileImage = require("@/assets/images/swipe-logo.png");
 function CustomHeader() {
   return (
     <View style={styles.headerContainer}>
-      {/* <Text style={styles.title}>Swipe</Text> */}
       <Image
-        // source={{ uri: post.profileImage }}
         source={PlaceholderProfileImage}
         style={styles.profileImage}
         defaultSource={PlaceholderProfileImage}
@@ -33,10 +33,7 @@ function CustomHeader() {
             style={styles.searchInput}
           />
         </LinearGradient>
-        <TouchableOpacity 
-          style={{}}
-          // onPress={() => setModalVisible(true)}
-        >
+        <TouchableOpacity>
           <AntDesign name="message1" size={22} color={Colors.light.textPurple} />
         </TouchableOpacity>
       </View>
@@ -45,86 +42,101 @@ function CustomHeader() {
 }
 
 export default function TabsLayout() {
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
   return (
-    <Tabs
-      screenOptions={{
-        headerTitle: () => <CustomHeader />,
-        tabBarActiveTintColor: Colors.light.iconDark, 
-        tabBarInactiveTintColor: Colors.light.iconLight,
-        tabBarShowLabel: false,
-        headerStyle: {
-          backgroundColor: "#fff",
-        },
-        headerShadowVisible: false,
-        headerTintColor: "#fff",
-        tabBarStyle: {
-          backgroundColor: "#fff",
-        },
-      }}
-    >
-      <Tabs.Screen 
-        name="index" 
-        options={{
-          tabBarIcon: ({focused, color}) => (
-            <Ionicons 
-              name={focused ? "home" : "home-outline"} 
-              size={24} 
-              color={color} 
-            />
-          ),
-        }} 
-      />
-      <Tabs.Screen
-        name="personal"
-        options={{
-          tabBarIcon: ({ focused, color }) => (
-            <FontAwesome5
-              name="user-friends"
-              // name={focused ? "user-friends" : "person-outline"}
-              size={20}
-              color={color}
-            />
-          ),
+    <>
+      <Tabs
+        screenOptions={{
+          headerTitle: () => <CustomHeader />,
+          tabBarActiveTintColor: Colors.light.iconDark, 
+          tabBarInactiveTintColor: Colors.light.iconLight,
+          tabBarShowLabel: false,
+          headerStyle: {
+            backgroundColor: "#fff",
+          },
+          headerShadowVisible: false,
+          headerTintColor: "#fff",
+          tabBarStyle: {
+            backgroundColor: "#fff",
+          },
         }}
+      >
+        <Tabs.Screen 
+          name="index" 
+          options={{
+            tabBarIcon: ({focused, color}) => (
+              <Ionicons 
+                name={focused ? "home" : "home-outline"} 
+                size={24} 
+                color={color} 
+              />
+            ),
+          }} 
+        />
+        <Tabs.Screen
+          name="personal"
+          options={{
+            tabBarIcon: ({ focused, color }) => (
+              <FontAwesome5
+                name="user-friends"
+                size={20}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="plus"
+          options={{
+            tabBarIcon: ({ focused, color }) => (
+              <Ionicons
+                name={focused ? "add-circle-outline" : "add-circle"}
+                size={28}
+                color={color}
+              />
+            ),
+          }}
+          listeners={{
+            tabPress: (e) => {
+              console.log("Plus tab pressed!"); // Add this for debugging
+              e.preventDefault();
+              setShowCreateModal(true);
+            },
+          }}
+        />
+        <Tabs.Screen
+          name="suggests"
+          options={{
+            tabBarIcon: ({ focused, color }) => (
+              <Ionicons
+                name={focused ? "heart" : "heart-outline"}
+                size={24}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            tabBarIcon: ({ focused, color }) => (
+              <Ionicons
+                name={focused ? "person-circle" : "person-circle-outline"}
+                size={24}
+                color={color}
+              />
+            ),
+          }}
+        />
+      </Tabs>
+      
+      <CreatePostModal 
+        visible={showCreateModal} 
+        onClose={() => setShowCreateModal(false)} 
       />
-      <Tabs.Screen
-        name="plus"
-        options={{
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name={focused ? "add-circle-outline" : "add-circle"}
-              size={28}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="suggests"
-        options={{
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name={focused ? "heart" : "heart-outline"}
-              size={24}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name={focused ? "person-circle" : "person-circle-outline"}
-              size={24}
-              color={color}
-            />
-          ),
-        }}
-      />
-    </Tabs>
-  )
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
