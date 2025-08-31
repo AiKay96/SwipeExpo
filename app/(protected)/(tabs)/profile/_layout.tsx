@@ -1,11 +1,11 @@
 import { Colors } from '@/constants/Colors';
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialIcons, AntDesign } from "@expo/vector-icons";
 import { Stack, usePathname, useRouter } from "expo-router";
 import { useState } from "react";
-import { Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
 import SettingsScreen from "./settings";
 
-const PlaceholderProfileImage = require("@/assets/images/profile-image-example.jpg");
+const PlaceholderProfileImage = require("@/assets/images/broken-image-dark.png");
 
 export default function ProfileLayout() {
   const router = useRouter();
@@ -17,41 +17,72 @@ export default function ProfileLayout() {
 
   const isActive = (name: string) => pathname === getRoute(name);
 
+  const handleUnfriend = () => {
+    Alert.alert(
+      "Unfriend",
+      "Are you sure you want to unfriend this user?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Unfriend", 
+          style: "destructive",
+          onPress: () => {
+            console.log("Unfriending user...");
+            Alert.alert("Success", "User has been unfriended.");
+          }
+        }
+      ]
+    );
+  };
+
+  const handleCalculateMatchRate = () => {
+    console.log("Calculating match rate...");
+    setTimeout(() => {
+      const matchRate = Math.floor(Math.random() * 100) + 1;
+      Alert.alert("Match Rate", `Your compatibility score is ${matchRate}%`);
+    }, 1000);
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.profileCardContainer}>
         <View style={styles.profileCard}>
-          <Image
-            // source={{ uri: post.profileImage }}
-            source={PlaceholderProfileImage}
-            style={styles.profileImage}
-            defaultSource={PlaceholderProfileImage}
-            onError={(e) =>
-              console.log("Image failed to load:", e.nativeEvent.error)
-            }
-            />
-          <View style={{width: 170}}>
-            <Text style={styles.displayName}>Display Name</Text>
-            <Text style={{color: Colors.light.gradientPurpleDark}}>@username</Text>
-            <View style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
-              <Text style={{color: Colors.light.referenceText}}>friends: 2</Text>
-              <Text style={{color: Colors.light.referenceText}}>followers: 15</Text>
-            </View>
-            <Text style={{color: Colors.light.referenceText}}>Age: 25</Text>
-          </View>
+          <Text style={styles.displayName}>Gris</Text>
+          <View style={{position: 'absolute', width: 132, height: 132, backgroundColor: Colors.light.textPink, borderRadius: 100, left: -16, bottom: -60}}></View>
+          <View style={{position: 'absolute', width: 132, height: 132, backgroundColor: Colors.light.textPink, borderRadius: 100, right: -16, bottom: -60}}></View>
         </View>
-        <View style={{display: "flex", gap: 8, alignItems: "center", paddingHorizontal: 20, paddingVertical: 10}}>
-          <Text  style={{color: Colors.light.textPurple}}>When the last light fades over the ridge, the forest awakens with ancient rhythms</Text>
-          {/* <View style={{maxWidth: 140, paddingTop: 8}}>
-            <Button title="Edit Profile" />
-          </View> */}
-        </View>
+        <Image
+          // source={{ uri: post.profileImage }}
+          source={PlaceholderProfileImage}
+          style={styles.profileImage}
+          defaultSource={PlaceholderProfileImage}
+          onError={(e) =>
+            console.log("Image failed to load:", e.nativeEvent.error)
+          }
+        />
         <TouchableOpacity 
           style={{position: "absolute", top: 8, right: 30}}
           onPress={() => setModalVisible(true)}
         >
           <Feather name="menu" size={22} color={Colors.light.textPurple} />
         </TouchableOpacity>
+      </View>
+      <View style={{display: "flex", alignItems: "center", justifyContent: 'center', paddingTop: 80, backgroundColor: Colors.light.cardBackgroundColor, zIndex: -1}}>
+        <View style={{display: "flex", gap: 4, alignItems: "center", paddingHorizontal: 20, paddingVertical: 10}}>
+          <Text style={{color: Colors.light.profileText, fontFamily: 'Milkyway', fontSize: 26}}>@gris</Text>
+          <Text style={{color: Colors.light.profileText, fontFamily: 'Milkyway', fontSize: 16}}><strong>15</strong> followers</Text>
+          <Text style={{color: Colors.light.profileText, fontFamily: 'Milkyway', fontSize: 16, textAlign: 'center',}}>
+            When the last light fades over the ridge, the forest awakens with ancient rhythms
+          </Text>
+        </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={handleCalculateMatchRate}
+          >
+            <Text style={styles.buttonText}>Followed</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <View style={styles.tabBar}>
         <Pressable
@@ -62,7 +93,6 @@ export default function ProfileLayout() {
             Creator
           </Text>
         </Pressable>
-
         <Pressable
           onPress={() => router.navigate(getRoute("personal"))}
           style={[styles.tabItem, isActive("personal") && styles.activeTab]}
@@ -95,25 +125,33 @@ export default function ProfileLayout() {
 
 const styles = StyleSheet.create({
   profileCardContainer: {
-    backgroundColor: "#fff",
-    padding: 8,
+    backgroundColor: Colors.light.cardBackgroundColor,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: "relative",
   },
   profileCard: {
     display: "flex",
-    flexDirection: "row",
     position: "relative",
     paddingHorizontal: 20,
     gap: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.light.textPink,
+    width: '100%',
+    height: 200,
   },
   displayName: {
-    fontSize: 18, 
-    fontWeight: "500",
-    color: Colors.light.textPurple,
+    fontSize: 38,
+    color: Colors.light.whiteText,
+    fontFamily: 'Milkyway',
+    marginBottom: 42,
   },
   tabBar: {
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.cardBackgroundColor,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.iconLight,
@@ -134,8 +172,38 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 100,
+    width: 182,
+    height: 182,
+    borderRadius: 200,
+    position: 'absolute',
+    borderColor: Colors.light.mainBackgroundColor,
+    borderWidth: 10,
+    top: 110,
+  },
+  buttonContainer: {
+    // paddingHorizontal: 40,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.light.mainBackgroundColor,
+    paddingHorizontal: 16,
+    // paddingVertical: 10,
+    borderRadius: 42,
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+
+    // Android shadow
+    elevation: 3,
+  },
+  buttonText: {
+    fontSize: 24,
+    color: Colors.light.textPink,
+    fontFamily: 'Milkyway',
   },
 });

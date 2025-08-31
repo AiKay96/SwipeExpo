@@ -1,14 +1,16 @@
 import CreatePostModal from '@/components/CreatePostModal';
 import { Colors } from '@/constants/Colors';
 import { AntDesign, FontAwesome5, Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import { useState } from 'react';
-import { Image, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, TextInput, TouchableOpacity, View, Dimensions } from "react-native";
 
-const PlaceholderProfileImage = require("@/assets/images/swipe-logo.png");
+const PlaceholderProfileImage = require("@/assets/images/swipe-logo2.png");
+const { width, height } = Dimensions.get("window");
 
 function CustomHeader() {
+  const router = useRouter();
+
   return (
     <View style={styles.headerContainer}>
       <Image
@@ -19,22 +21,21 @@ function CustomHeader() {
           console.log("Image failed to load:", e.nativeEvent.error)
         }
       />
-      <View style={{display: "flex", flexDirection: "row", alignItems: "center", gap: 10}}>
-        <LinearGradient 
-          style={styles.searchWrapper} 
-          colors={[Colors.light.gradientPink, Colors.light.gradientBlue]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <Ionicons name="search" size={18} color={Colors.light.textPurple} style={styles.searchIcon} />
-          <TextInput
-            placeholder="Search"
-            placeholderTextColor={Colors.light.textPurple}
-            style={styles.searchInput}
-          />
-        </LinearGradient>
-        <TouchableOpacity>
-          <AntDesign name="message1" size={22} color={Colors.light.textPurple} />
+      <View style={{display: "flex", flexDirection: "row", alignItems: "center", gap: 10, paddingRight: 20}}>
+        <TouchableOpacity onPress={() => router.push('/search')}>
+          <View style={styles.searchWrapper}>
+            <Ionicons name="search" size={18} color={Colors.light.inputText} style={styles.searchIcon} />
+            <TextInput
+              placeholder="Search"
+              placeholderTextColor={Colors.light.inputText}
+              style={styles.searchInput}
+              editable={false}
+              pointerEvents="none"
+            />
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/messages')}>
+          <AntDesign name="message1" size={22} color={Colors.light.logoPink} />
         </TouchableOpacity>
       </View>
     </View>
@@ -49,16 +50,18 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           headerTitle: () => <CustomHeader />,
-          tabBarActiveTintColor: Colors.light.iconDark, 
-          tabBarInactiveTintColor: Colors.light.iconLight,
+          tabBarActiveTintColor: Colors.light.logoPink, 
+          tabBarInactiveTintColor: Colors.light.inputText,
           tabBarShowLabel: false,
           headerStyle: {
-            backgroundColor: "#fff",
+            backgroundColor: Colors.light.mainBackgroundColor,
           },
           headerShadowVisible: false,
           headerTintColor: "#fff",
           tabBarStyle: {
             backgroundColor: "#fff",
+            borderTopLeftRadius: 30,
+            borderTopRightRadius: 30,
           },
         }}
       >
@@ -129,6 +132,24 @@ export default function TabsLayout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name="search"
+          options={{
+            href: null, // exclude search
+          }}
+        />
+        <Tabs.Screen
+          name="messages/index"
+          options={{
+            href: null, // Excludes messages/index.tsx
+          }}
+        />
+        <Tabs.Screen
+          name="messages/[username]"
+          options={{
+            href: null, // Excludes messages/[username].tsx
+          }}
+        />
       </Tabs>
       
       <CreatePostModal 
@@ -144,21 +165,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
     paddingVertical: 10,
-    width: "100%",
+    paddingHorizontal: 16,
+    width: width, // enough to stretch across
+    backgroundColor: Colors.light.mainBackgroundColor, // helps see boundaries
   },
   title: {
     color: "#080e0e",
     fontSize: 20,
     fontWeight: "bold",
     paddingBottom: 2,
+    fontFamily: 'Milkyway',
   },
   searchWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f2f7fa",
-    borderRadius: 10,
+    backgroundColor: Colors.light.cardBackgroundColor,
+    borderRadius: 30,
     paddingHorizontal: 8,
     height: 36,
     width: 140,
@@ -169,7 +192,9 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
-    paddingBottom: 9,
+    paddingTop: 2,
+    width: 36,
+    fontFamily: 'Milkyway',
   },
   profileImage: {
     width: 120,

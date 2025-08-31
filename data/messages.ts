@@ -1,91 +1,69 @@
-export type FriendRequest = {
+export type MessageUser = {
   id: string;
   username: string;
   profilePhoto: string;
-  interestMatch: number;
-  mutual: number;
-  overlappingCategories: string[];
+  displayName: string;
 };
 
-export const friendRequests: FriendRequest[] = [
+export const messageUsers: MessageUser[] = [
   {
     id: "1",
     username: "nature_dan",
     profilePhoto: "https://randomuser.me/api/portraits/men/11.jpg",
-    interestMatch: 87,
-    mutual: 12,
-    overlappingCategories: ["hiking", "photography"],
+    displayName: "Daniel Forest",
   },
   {
     id: "2",
     username: "gamerella",
     profilePhoto: "https://randomuser.me/api/portraits/women/12.jpg",
-    interestMatch: 92,
-    mutual: 25,
-    overlappingCategories: ["gaming", "cosplay"],
+    displayName: "Ella Nightshade",
   },
   {
     id: "3",
     username: "chef_benny",
     profilePhoto: "https://randomuser.me/api/portraits/men/13.jpg",
-    interestMatch: 76,
-    mutual: 8,
-    overlappingCategories: ["cooking", "foodie"],
+    displayName: "Ben Marchesi",
   },
   {
     id: "4",
     username: "sara_reads",
     profilePhoto: "https://randomuser.me/api/portraits/women/14.jpg",
-    interestMatch: 81,
-    mutual: 15,
-    overlappingCategories: ["books", "literature", "coffee"],
+    displayName: "Sara Moore",
   },
   {
     id: "5",
     username: "techno_tim",
     profilePhoto: "https://randomuser.me/api/portraits/men/15.jpg",
-    interestMatch: 64,
-    mutual: 5,
-    overlappingCategories: ["tech", "gadgets", "AI"],
+    displayName: "Timur Varga",
   },
   {
     id: "6",
     username: "luna_art",
     profilePhoto: "https://randomuser.me/api/portraits/women/16.jpg",
-    interestMatch: 95,
-    mutual: 30,
-    overlappingCategories: ["art", "painting", "design"],
+    displayName: "Luna Rivera",
   },
   {
     id: "7",
     username: "miles_ahead",
     profilePhoto: "https://randomuser.me/api/portraits/men/17.jpg",
-    interestMatch: 73,
-    mutual: 9,
-    overlappingCategories: ["running", "fitness", "coffee"],
+    displayName: "Miles Grant",
   },
   {
     id: "8",
     username: "zoe_the_coder",
     profilePhoto: "https://randomuser.me/api/portraits/women/18.jpg",
-    interestMatch: 89,
-    mutual: 18,
-    overlappingCategories: ["coding", "pixel art", "frontend"],
+    displayName: "Zoe Andersen",
   },
   {
     id: "9",
     username: "aj_travels",
     profilePhoto: "https://randomuser.me/api/portraits/men/19.jpg",
-    interestMatch: 78,
-    mutual: 11,
-    overlappingCategories: ["travel", "photography", "adventure"],
+    displayName: "AJ Patel",
   },
   {
     id: "10",
     username: "bookish_bella",
     profilePhoto: "https://randomuser.me/api/portraits/women/20.jpg",
-    interestMatch: 83,
-    mutual: 22,
-    overlappingCategories: ["reading", "cozy", "journaling"],
+    displayName: "Bella Knight",
   },
 ];

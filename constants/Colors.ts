@@ -25,6 +25,16 @@ export const Colors = {
     tint: tintColorLight,
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
+
+    mainBackgroundColor: '#e9edf6',
+    cardBackgroundColor: '#fdeef5',
+    inputText: '#bdb3d6',
+    logoPink: '#ffa7c0',
+    textPink: '#fdbfd4',
+    whiteText: '#fff',
+    bioTextColor: '#a086b5',
+    modalBackgroundColor: '#dbdaec',
+    profileText: '#a88dbb',
   },
   dark: {
     text: '#ECEDEE',
