@@ -102,9 +102,9 @@ export default function TabsLayout() {
           }}
           listeners={{
             tabPress: (e) => {
-              console.log("Plus tab pressed!"); // Add this for debugging
               e.preventDefault();
               setShowCreateModal(true);
+              console.log("Plus pressed");
             },
           }}
         />
@@ -135,19 +135,19 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="search"
           options={{
-            href: null, // exclude search
+            href: null, // exclude search.tsx
           }}
         />
         <Tabs.Screen
           name="messages/index"
           options={{
-            href: null, // Excludes messages/index.tsx
+            href: null, // exclude messages/index.tsx
           }}
         />
         <Tabs.Screen
           name="messages/[username]"
           options={{
-            href: null, // Excludes messages/[username].tsx
+            href: null, // exclude messages/[username].tsx
           }}
         />
       </Tabs>
@@ -167,8 +167,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 10,
     paddingHorizontal: 16,
-    width: width, // enough to stretch across
-    backgroundColor: Colors.light.mainBackgroundColor, // helps see boundaries
+    width: width,
+    backgroundColor: Colors.light.mainBackgroundColor,
   },
   title: {
     color: "#080e0e",

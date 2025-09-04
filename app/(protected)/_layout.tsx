@@ -3,7 +3,7 @@ import { Redirect, Stack } from "expo-router";
 import React, { useContext } from "react";
 
 export const unstable_settings = {
-  initialRouteName: "(tabs)", // anchor
+  initialRouteName: "(tabs)",
 };
 
 export default function ProtectedLayout() {

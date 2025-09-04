@@ -1,188 +1,278 @@
-import { Colors } from '@/constants/Colors';
-import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity } from "react-native";
-import { useState, useEffect } from 'react';
-
-// Import your data
-import { friendRequests, FriendRequest } from '@/data/friend-requests'; // Adjust the path as needed
+import { Colors } from "@/constants/Colors";
+import {
+  Text,
+  View,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Platform,
+  ActivityIndicator,
+  StyleSheet
+} from "react-native";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "@/utils/authContext";
 
 const PlaceholderProfileImage = require("@/assets/images/profile-image-example.jpg");
 
+// API base URL
+const API_URL =
+  Platform.OS === "android"
+    ? process.env.EXPO_PUBLIC_API_URL_ALTERNATIVE
+    : process.env.EXPO_PUBLIC_API_URL;
+
+// Types
+type FriendStatus = "not_friends" | "friends" | "pending";
+
+export interface FriendUser {
+  id: string;
+  username: string;
+  display_name: string;
+  friend_status: FriendStatus;
+  is_following: boolean;
+  mutual_friend_count: number;
+  match_rate: number;
+  overlap_categories: string[];
+  profilePhoto?: string;
+}
+
 // Horizontal Progress Component
-const HorizontalProgress = ({ percentage }: { percentage: number }) => {
-  return (
-    <View style={styles.progressContainer}>
-      <View style={styles.progressBackground}>
-        <View 
-          style={[
-            styles.progressFill, 
-            { width: `${percentage}%` }
-          ]} 
-        />
-      </View>
-      <Text style={styles.percentageText}>{percentage}%</Text>
+const HorizontalProgress = ({ percentage }: { percentage: number }) => (
+  <View style={styles.progressContainer}>
+    <View style={styles.progressBackground}>
+      <View style={[styles.progressFill, { width: `${percentage}%` }]} />
     </View>
-  );
-};
+    <Text style={styles.percentageText}>{percentage}%</Text>
+  </View>
+);
 
 export default function SuggestsScreen() {
-  const [friendRequestsData, setFriendRequestsData] = useState<FriendRequest[]>([]);
-  const [suggestionsData, setSuggestionsData] = useState<FriendRequest[]>([]);
+  const { token } = useContext(AuthContext);
+  const [friendRequestsData, setFriendRequestsData] = useState<FriendUser[]>([]);
+  const [suggestionsData, setSuggestionsData] = useState<FriendUser[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Split the data - first 5 for friend requests, rest for suggestions
-    setFriendRequestsData(friendRequests.slice(0, 5));
-    setSuggestionsData(friendRequests.slice(5));
-  }, []);
+    if (token) {
+      fetchData();
+    }
+  }, [token]);
 
-  const handleAcceptFriend = (id: string) => {
-    console.log("Accepting friend request:", id);
-    setFriendRequestsData(prev => prev.filter(request => request.id !== id));
+  const authFetch = async (url: string, options: RequestInit = {}) => {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // 👈 attach token
+        ...(options.headers || {}),
+      },
+    });
+    if (!res.ok) {
+      throw new Error(`Request failed: ${res.status}`);
+    }
+    return res.json();
   };
 
-  const handleRejectFriend = (id: string) => {
-    console.log("Rejecting friend request:", id);
-    setFriendRequestsData(prev => prev.filter(request => request.id !== id));
+  const fetchData = async () => {
+    try {
+      const [requestsRes, suggestionsRes] = await Promise.all([
+        authFetch(`${API_URL}/friend-requests/incoming`),
+        authFetch(`${API_URL}/friends/suggestions?limit=20`),
+      ]);
+      setFriendRequestsData(requestsRes.users || []);
+      setSuggestionsData(suggestionsRes.users || []);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleInterested = (id: string) => {
-    console.log("Interested in:", id);
-    setSuggestionsData(prev => prev.filter(suggestion => suggestion.id !== id));
+  const handleAcceptFriend = async (id: string) => {
+    try {
+      await authFetch(`${API_URL}/friend-requests/accept`, {
+        method: "POST",
+        body: JSON.stringify({ to_user_id: id }),
+      });
+      setFriendRequestsData((prev) => prev.filter((req) => req.id !== id));
+    } catch (err) {
+      console.error("Error accepting friend request:", err);
+    }
   };
 
-  const handleNotInterested = (id: string) => {
-    console.log("Not interested in:", id);
-    setSuggestionsData(prev => prev.filter(suggestion => suggestion.id !== id));
+  const handleRejectFriend = async (id: string) => {
+    try {
+      await authFetch(`${API_URL}/friend-requests/decline`, {
+        method: "POST",
+        body: JSON.stringify({ to_user_id: id }),
+      });
+      setFriendRequestsData((prev) => prev.filter((req) => req.id !== id));
+    } catch (err) {
+      console.error("Error declining friend request:", err);
+    }
   };
 
-  const renderFriendRequest = (item: FriendRequest) => (
-    <View key={item.id} style={styles.requestCard}>
-      <View style={styles.cardHeader}>
-        <TouchableOpacity 
-          style={styles.rejectButton}
-          onPress={() => handleRejectFriend(item.id)}
-        >
-          <Text style={styles.rejectText}>Reject</Text>
-        </TouchableOpacity>
-        <View style={styles.userInfo}>
-          <Text style={styles.username}>@{item.username}</Text>
-        </View>
-        <TouchableOpacity 
-          style={styles.acceptButton}
-          onPress={() => handleAcceptFriend(item.id)}
-        >
-          <Text style={styles.acceptText}>Accept</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: item.profilePhoto }}
-          style={styles.profileImage}
-          defaultSource={PlaceholderProfileImage}
-          onError={(e) => console.log("Image failed to load:", e.nativeEvent.error)}
-        />
-      </View>
-      
-      <View style={styles.statsContainer}>
-        <Text style={styles.mutualText}>{item.mutual} mutual friends</Text>
-      </View>
-      
-      <View style={styles.categoriesContainer}>
-        {item.overlappingCategories.map((category, index) => (
-          <View key={index} style={styles.categoryTag}>
-            <Text style={styles.categoryText}>{category}</Text>
-          </View>
-        ))}
-      </View>
-      
-      <View style={styles.matchContainer}>
-        <Text style={styles.matchLabel}>Interest Match</Text>
-        <HorizontalProgress percentage={item.interestMatch} />
-      </View>
-    </View>
-  );
+  const handleInterested = async (id: string) => {
+    try {
+      await authFetch(`${API_URL}/friend-requests/send`, {
+        method: "POST",
+        body: JSON.stringify({ to_user_id: id }),
+      });
+      setSuggestionsData((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      console.error("Error sending friend request:", err);
+    }
+  };
 
-  const renderSuggestion = (item: FriendRequest) => (
-    <View key={item.id} style={styles.requestCard}>
-      <View style={styles.cardHeader}>
-        <TouchableOpacity 
-          style={styles.notInterestedButton}
-          onPress={() => handleNotInterested(item.id)}
-        >
-          <Text style={styles.notInterestedText}>Not Interested</Text>
-        </TouchableOpacity>
-        <View style={styles.userInfo}>
-          <Text style={styles.username}>@{item.username}</Text>
-        </View>
-        <TouchableOpacity 
-          style={styles.interestedButton}
-          onPress={() => handleInterested(item.id)}
-        >
-          <Text style={styles.interestedText}>Interested</Text>
-        </TouchableOpacity>
+  const handleNotInterested = async (id: string) => {
+    try {
+      await authFetch(`${API_URL}/suggestions/skip`, {
+        method: "POST",
+        body: JSON.stringify({ target_id: id }),
+      });
+      setSuggestionsData((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      console.error("Error skipping suggestion:", err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.light.bioTextColor} />
       </View>
-      
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: item.profilePhoto }}
-          style={styles.profileImage}
-          defaultSource={PlaceholderProfileImage}
-          onError={(e) => console.log("Image failed to load:", e.nativeEvent.error)}
-        />
-      </View>
-      
-      <View style={styles.statsContainer}>
-        <Text style={styles.mutualText}>{item.mutual} mutual friends</Text>
-      </View>
-      
-      <View style={styles.categoriesContainer}>
-        {item.overlappingCategories.map((category, index) => (
-          <View key={index} style={styles.categoryTag}>
-            <Text style={styles.categoryText}>{category}</Text>
-          </View>
-        ))}
-      </View>
-      
-      <View style={styles.matchContainer}>
-        <Text style={styles.matchLabel}>Interest Match</Text>
-        <HorizontalProgress percentage={item.interestMatch} />
-      </View>
-    </View>
-  );
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.fullContainer}>
-        <ScrollView 
+        <ScrollView
           style={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Friend Requests Section */}
           {friendRequestsData.length > 0 && (
             <>
               <Text style={styles.sectionTitle}>Friend Requests:</Text>
-              {friendRequestsData.map(renderFriendRequest)}
+              {friendRequestsData.map((item) => (
+                <FriendCard
+                  key={item.id}
+                  item={item}
+                  type="request"
+                  onAccept={handleAcceptFriend}
+                  onReject={handleRejectFriend}
+                />
+              ))}
             </>
           )}
 
-          {/* Suggestions Section */}
           {suggestionsData.length > 0 && (
             <>
-              <Text style={[styles.sectionTitle, { marginTop: friendRequestsData.length > 0 ? 24 : 0 }]}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { marginTop: friendRequestsData.length > 0 ? 24 : 0 },
+                ]}
+              >
                 Suggestions:
               </Text>
-              {suggestionsData.map(renderSuggestion)}
+              {suggestionsData.map((item) => (
+                <FriendCard
+                  key={item.id}
+                  item={item}
+                  type="suggestion"
+                  onAccept={handleInterested}
+                  onReject={handleNotInterested}
+                />
+              ))}
             </>
           )}
 
-          {/* Empty State - when both sections are empty */}
           {friendRequestsData.length === 0 && suggestionsData.length === 0 && (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No friend requests or suggestions available</Text>
+              <Text style={styles.emptyText}>
+                No friend requests or suggestions available
+              </Text>
             </View>
           )}
         </ScrollView>
+      </View>
+    </View>
+  );
+}
+
+function FriendCard({
+  item,
+  type,
+  onAccept,
+  onReject,
+}: {
+  item: FriendUser;
+  type: "request" | "suggestion";
+  onAccept: (id: string) => void;
+  onReject: (id: string) => void;
+}) {
+  return (
+    <View style={styles.requestCard}>
+      <View style={styles.cardHeader}>
+        <TouchableOpacity
+          style={
+            type === "request" ? styles.rejectButton : styles.notInterestedButton
+          }
+          onPress={() => onReject(item.id)}
+        >
+          <Text
+            style={
+              type === "request" ? styles.rejectText : styles.notInterestedText
+            }
+          >
+            {type === "request" ? "Decline" : "Skip"}
+          </Text>
+        </TouchableOpacity>
+        <View style={styles.userInfo}>
+          <Text style={styles.username}>@{item.username}</Text>
+        </View>
+        <TouchableOpacity
+          style={
+            type === "request" ? styles.acceptButton : styles.interestedButton
+          }
+          onPress={() => onAccept(item.id)}
+        >
+          <Text
+            style={
+              type === "request" ? styles.acceptText : styles.interestedText
+            }
+          >
+            {type === "request" ? "Accept" : "Add Friend"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.imageContainer}>
+        <Image
+          source={{ uri: item.profilePhoto || "" }}
+          style={styles.profileImage}
+          defaultSource={PlaceholderProfileImage}
+        />
+      </View>
+
+      <View style={styles.statsContainer}>
+        <Text style={styles.mutualText}>
+          {item.mutual_friend_count} mutual friends
+        </Text>
+      </View>
+
+      <View style={styles.categoriesContainer}>
+        {item.overlap_categories.map((category, index) => (
+          <View key={index} style={styles.categoryTag}>
+            <Text style={styles.categoryText}>{category}</Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.matchContainer}>
+        <Text style={styles.matchLabel}>Interest Match</Text>
+        <HorizontalProgress percentage={item.match_rate} />
       </View>
     </View>
   );

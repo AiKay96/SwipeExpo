@@ -5,7 +5,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
-import { LogBox } from "react-native";
+import { LogBox, View, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -16,11 +16,10 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    'Milkyway': require('../assets/fonts/Milkyway-DEMO.ttf'),
+    'Milkyway': require('../assets/fonts/MilkywayDEMO-01.ttf'),
   });
 
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
@@ -29,14 +28,25 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{flex: 1}}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <StatusBar style="auto" />
-          <Stack>
-            <Stack.Screen name="(protected)" options={{headerShown: false}} />
-            <Stack.Screen name="sign-in" options={{headerShown: false}} />
-            <Stack.Screen name="create-account" options={{headerShown: true, headerTitle: "Back to Login", headerTintColor: Colors.light.textPurple}} />
-            <Stack.Screen name="+not-found" options={{headerShown: false}} />
-          </Stack>
+          <View style={styles.container}>
+            <Stack>
+              <Stack.Screen name="(protected)" options={{headerShown: false}} />
+              <Stack.Screen name="sign-in" options={{headerShown: false}} />
+              <Stack.Screen name="create-account" options={{headerShown: true, headerTitle: "Back to Login", headerTintColor: Colors.light.textPurple}} />
+              <Stack.Screen name="+not-found" options={{headerShown: false}} />
+            </Stack>
+          </View>
         </ThemeProvider>
       </GestureHandlerRootView>
     </AuthProvider>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: 500,
+  },
+});

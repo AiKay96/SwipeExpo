@@ -48,8 +48,26 @@ export default function ProfileLayout() {
       <View style={styles.profileCardContainer}>
         <View style={styles.profileCard}>
           <Text style={styles.displayName}>Gris</Text>
-          <View style={{position: 'absolute', width: 132, height: 132, backgroundColor: Colors.light.textPink, borderRadius: 100, left: -16, bottom: -60}}></View>
-          <View style={{position: 'absolute', width: 132, height: 132, backgroundColor: Colors.light.textPink, borderRadius: 100, right: -16, bottom: -60}}></View>
+          <View style={{position: 'absolute', width: 132, height: 132, backgroundColor: Colors.light.textPink, borderRadius: 100, left: -16, bottom: -60}}>
+            <Pressable
+              onPress={() => router.navigate(getRoute("index"))}
+              style={[styles.tabItem, isActive("index") && styles.activeTab]}
+            >
+              <Text style={[styles.tabText, isActive("index") && styles.activeText]}>
+                Creator
+              </Text>
+            </Pressable>
+          </View>
+          <View style={{position: 'absolute', width: 132, height: 132, backgroundColor: Colors.light.textPink, borderRadius: 100, right: -16, bottom: -60}}>
+            <Pressable
+              onPress={() => router.navigate(getRoute("personal"))}
+              style={[styles.tabItem, isActive("personal") && styles.activeTab]}
+            >
+              <Text style={[styles.tabText, isActive("personal") && styles.activeText]}>
+                Personal
+              </Text>
+            </Pressable>
+          </View>
         </View>
         <Image
           // source={{ uri: post.profileImage }}
@@ -83,33 +101,6 @@ export default function ProfileLayout() {
             <Text style={styles.buttonText}>Followed</Text>
           </TouchableOpacity>
         </View>
-      </View>
-      <View style={styles.tabBar}>
-        <Pressable
-          onPress={() => router.navigate(getRoute("index"))}
-          style={[styles.tabItem, isActive("index") && styles.activeTab]}
-        >
-          <Text style={[styles.tabText, isActive("index") && styles.activeText]}>
-            Creator
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => router.navigate(getRoute("personal"))}
-          style={[styles.tabItem, isActive("personal") && styles.activeTab]}
-        >
-          <Text style={[styles.tabText, isActive("personal") && styles.activeText]}>
-            Personal
-          </Text>
-        </Pressable>
-
-        {/* <Pressable
-          onPress={() => router.navigate(getRoute("settings"))}
-          style={[styles.tabItem, isActive("settings") && styles.activeTab]}
-        >
-          <Text style={[styles.tabText, isActive("settings") && styles.activeText]}>
-            Settings
-          </Text>
-        </Pressable> */}
       </View>
       <Modal
         visible={modalVisible}
@@ -159,9 +150,11 @@ const styles = StyleSheet.create({
   tabText: {
     color: Colors.light.gradientPurpleDark,
     fontSize: 16,
+    textAlign: 'center',
   },
   tabItem: {
     paddingBottom: 6,
+    paddingTop: 46,
   },
   activeTab: {
     borderBottomColor: Colors.light.textPurple,

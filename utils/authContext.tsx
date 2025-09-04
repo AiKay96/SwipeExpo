@@ -8,6 +8,7 @@ SplashScreen.preventAutoHideAsync();
 type AuthState = {
   isLoggedIn: boolean;
   isReady: boolean;
+  token: string | null;
   logIn: (username: string, password: string) => Promise<boolean>;
   logOut: () => void;
 };
@@ -19,6 +20,7 @@ const API_URL = Platform.OS === 'android' ? process.env.EXPO_PUBLIC_API_URL_ALTE
 export const AuthContext = createContext<AuthState>({
   isLoggedIn: false,
   isReady: false,
+  token: null,
   logIn: async () => false,
   logOut: () => {},
 });
@@ -106,6 +108,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       value={{
         isReady,
         isLoggedIn,
+        token,
         logIn,
         logOut,
       }}
