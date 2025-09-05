@@ -150,6 +150,12 @@ export default function TabsLayout() {
             href: null, // exclude messages/[username].tsx
           }}
         />
+        <Tabs.Screen
+          name="user"
+          options={{
+            href: null, // exclude user/[username].tsx
+          }}
+        />
       </Tabs>
       
       <CreatePostModal 

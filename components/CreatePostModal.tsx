@@ -1,4 +1,3 @@
-// CreatePostModal.tsx
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -57,14 +56,10 @@ export default function CreatePostModal({ visible, onClose }: CreatePostModalPro
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  // For web: hold the picked File
   const [webFile, setWebFile] = useState<any | null>(null);
   const fileInputRef = useRef<any>(null);
-
-  // Post type selection
   const [postType, setPostType] = useState<'personal' | 'creator' | null>(null);
 
-  // Creator post specific states
   const [categories, setCategories] = useState<Category[]>([]);
   const [references, setReferences] = useState<Reference[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -400,7 +395,7 @@ export default function CreatePostModal({ visible, onClose }: CreatePostModalPro
       <View style={styles.container}>
         {/* Header */}
         <LinearGradient
-          colors={[Colors.light.gradientMid, Colors.light.gradientBlue]}
+          colors={[Colors.light.logoPink, Colors.light.textPink]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.header}
@@ -445,7 +440,7 @@ export default function CreatePostModal({ visible, onClose }: CreatePostModalPro
                         onChange={onWebFileChange}
                       />
                       <TouchableOpacity style={styles.imagePlaceholder} onPress={clickWebPicker}>
-                        <Ionicons name="images-outline" size={50} color={Colors.light.textPurple} />
+                        <Ionicons name="images-outline" size={50} color={Colors.light.whiteText} />
                         <Text style={styles.placeholderText}>Click to select image</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={styles.selectButton} onPress={clickWebPicker}>
@@ -618,7 +613,7 @@ export default function CreatePostModal({ visible, onClose }: CreatePostModalPro
                 disabled={!mediaUrl || !description.trim() || (postType === 'creator' && !selectedCategory) || loading}
               >
                 <LinearGradient
-                  colors={[Colors.light.gradientPink, Colors.light.gradientBlue]}
+                  colors={[Colors.light.logoPink, Colors.light.darkPink]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.buttonGradient}
@@ -641,7 +636,7 @@ export default function CreatePostModal({ visible, onClose }: CreatePostModalPro
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: Colors.light.mainBackgroundColor },
   header: { paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20 },
   headerContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   closeButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255, 255, 255, 0.2)', justifyContent: 'center', alignItems: 'center' },
@@ -651,17 +646,17 @@ const styles = StyleSheet.create({
   content: { padding: 20 },
   imageSection: { marginBottom: 30, alignItems: 'center' },
   imagePlaceholder: {
-    width: '100%', height: 200, backgroundColor: Colors.light.referenceBack, borderRadius: 16,
-    justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.light.iconLight,
+    width: '100%', height: 200, backgroundColor: Colors.light.logoPink, borderRadius: 16,
+    justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.light.whiteText,
     borderStyle: 'dashed', marginBottom: 15,
   },
-  placeholderText: { marginTop: 10, color: Colors.light.textPurple, fontSize: 16 },
+  placeholderText: { marginTop: 10, color: Colors.light.whiteText, fontSize: 16 },
   selectedImageContainer: { position: 'relative', width: '100%', height: 250, borderRadius: 16, overflow: 'hidden', marginBottom: 15 },
   selectedImage: { width: '100%', height: '100%', resizeMode: 'cover' },
   uploadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', justifyContent: 'center', alignItems: 'center' },
   uploadingText: { color: '#fff', marginTop: 10, fontSize: 16 },
   removeImageButton: { position: 'absolute', top: 10, right: 10, backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: 15 },
-  selectButton: { backgroundColor: Colors.light.gradientBlue, paddingHorizontal: 30, paddingVertical: 12, borderRadius: 20 },
+  selectButton: { backgroundColor: Colors.light.logoPink, paddingHorizontal: 30, paddingVertical: 12, borderRadius: 20 },
   selectButtonText: { color: '#fff', fontSize: 16, fontWeight: '500' },
   postTypeSection: { marginBottom: 30 },
   sectionTitle: { fontSize: 18, fontWeight: '600', color: Colors.light.textPurple, marginBottom: 15 },
@@ -679,8 +674,7 @@ const styles = StyleSheet.create({
   dropdownButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.light.referenceBack, borderRadius: 12, borderWidth: 1, borderColor: Colors.light.iconLight, paddingRight: 15 },
   dropdownInput: { flex: 1, padding: 15, fontSize: 16, color: Colors.light.textPurple },
   dropdown: {
-    // position: 'absolute', top: '100%', left: 0, right: 0, 
-    backgroundColor: '#fff', borderRadius: 12, borderWidth: 1,
+    backgroundColor: Colors.light.mainBackgroundColor, borderRadius: 12, borderWidth: 1,
     borderColor: Colors.light.iconLight, maxHeight: 200, 
     zIndex: 1000, 
     elevation: 5, 
@@ -697,9 +691,9 @@ const styles = StyleSheet.create({
   referenceDescription: { fontSize: 14, color: Colors.light.referenceText, marginTop: 2 },
   hashtagContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.light.referenceBack, borderRadius: 12, borderWidth: 1, borderColor: Colors.light.iconLight },
   hashtagInput: { flex: 1, padding: 15, fontSize: 16, color: Colors.light.textPurple },
-  addHashtagButton: { backgroundColor: Colors.light.gradientBlue, padding: 10, borderRadius: 8, marginRight: 10 },
+  addHashtagButton: { backgroundColor: Colors.light.logoPink, padding: 10, borderRadius: 8, marginRight: 10 },
   hashtagList: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10, gap: 8 },
-  hashtagTag: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.light.gradientBlue, borderRadius: 20, paddingVertical: 6, paddingHorizontal: 12, gap: 6 },
+  hashtagTag: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.light.logoPink, borderRadius: 20, paddingVertical: 6, paddingHorizontal: 12, gap: 6 },
   hashtagText: { color: '#fff', fontSize: 14, fontWeight: '500' },
   createButton: { borderRadius: 25, overflow: 'hidden', marginBottom: 30 },
   disabledButton: { opacity: 0.5 },

@@ -26,7 +26,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <GestureHandlerRootView style={{flex: 1}}>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <ThemeProvider value={DefaultTheme}>
           <StatusBar style="auto" />
           <View style={styles.container}>
             <Stack>

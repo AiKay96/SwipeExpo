@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Button, Platform, StyleSheet, Text, TextInput, View } from "react-native";
 
-// const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const API_URL = Platform.OS === 'android' ? process.env.EXPO_PUBLIC_API_URL_ALTERNATIVE : process.env.EXPO_PUBLIC_API_URL;
 
 export default function CreateAccountScreen() {

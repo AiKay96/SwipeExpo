@@ -7,20 +7,26 @@ import {
   TouchableOpacity,
   Platform,
   ActivityIndicator,
-  StyleSheet
+  StyleSheet,
 } from "react-native";
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "@/utils/authContext";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  interpolate,
+  runOnJS,
+} from "react-native-reanimated";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 const PlaceholderProfileImage = require("@/assets/images/profile-image-example.jpg");
 
-// API base URL
 const API_URL =
   Platform.OS === "android"
     ? process.env.EXPO_PUBLIC_API_URL_ALTERNATIVE
     : process.env.EXPO_PUBLIC_API_URL;
 
-// Types
 type FriendStatus = "not_friends" | "friends" | "pending";
 
 export interface FriendUser {
@@ -35,7 +41,6 @@ export interface FriendUser {
   profilePhoto?: string;
 }
 
-// Horizontal Progress Component
 const HorizontalProgress = ({ percentage }: { percentage: number }) => (
   <View style={styles.progressContainer}>
     <View style={styles.progressBackground}>
@@ -62,7 +67,7 @@ export default function SuggestsScreen() {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // 👈 attach token
+        Authorization: `Bearer ${token}`,
         ...(options.headers || {}),
       },
     });
@@ -212,6 +217,35 @@ function FriendCard({
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
 }) {
+  const rotation = useSharedValue(0);
+  const translateX = useSharedValue(0);
+
+  const panGesture = Gesture.Pan()
+    .onUpdate((event) => {
+      translateX.value = event.translationX;
+      rotation.value = interpolate(event.translationX, [-100, 0, 100], [-15, 0, 15]);
+    })
+    .onEnd((event) => {
+      const x = event.translationX;
+
+      if (x > 50) {
+        runOnJS(onAccept)(item.id);
+      } else if (x < -50) {
+        runOnJS(onReject)(item.id);
+      }
+
+      // Reset position
+      translateX.value = withSpring(0);
+      rotation.value = withSpring(0);
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { rotateZ: `${rotation.value}deg` },
+    ],
+  }));
+
   return (
     <View style={styles.requestCard}>
       <View style={styles.cardHeader}>
@@ -248,13 +282,15 @@ function FriendCard({
         </TouchableOpacity>
       </View>
 
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: item.profilePhoto || "" }}
-          style={styles.profileImage}
-          defaultSource={PlaceholderProfileImage}
-        />
-      </View>
+      <GestureDetector gesture={panGesture}>
+        <Animated.View style={[styles.imageContainer, animatedStyle]}>
+          <Image
+            source={{ uri: item.profilePhoto || "" }}
+            style={styles.profileImage}
+            defaultSource={PlaceholderProfileImage}
+          />
+        </Animated.View>
+      </GestureDetector>
 
       <View style={styles.statsContainer}>
         <Text style={styles.mutualText}>
@@ -278,10 +314,11 @@ function FriendCard({
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.mainBackgroundColor,
     paddingVertical: 20,
   },
   fullContainer: {
@@ -290,9 +327,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
     color: Colors.light.textPurple,
     marginBottom: 16,
+    fontFamily: 'Milkyway',
   },
   scrollContainer: {
     flex: 1,
@@ -301,20 +338,18 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   requestCard: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.cardBackgroundColor,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
+    
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowRadius: 4,
+
+    // Android shadow
     elevation: 3,
-    borderWidth: 1,
-    borderColor: Colors.light.iconLight,
   },
   cardHeader: {
     flexDirection: "row",
@@ -324,7 +359,7 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: 'Milkyway',
     color: Colors.light.textPurple,
     textAlign: "center",
   },
@@ -349,6 +384,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.light.referenceText,
     textAlign: "center",
+    fontFamily: 'Milkyway',
   },
   categoriesContainer: {
     flexDirection: "row",
@@ -368,7 +404,7 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 11,
     color: Colors.light.textPurple,
-    fontWeight: "500",
+    fontFamily: 'Milkyway',
   },
   matchContainer: {
     alignItems: "center",
@@ -378,6 +414,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.light.referenceText,
     marginBottom: 8,
+    fontFamily: 'Milkyway',
   },
   progressContainer: {
     alignItems: "center",
@@ -411,11 +448,11 @@ const styles = StyleSheet.create({
   acceptText: {
     color: "#fff",
     fontSize: 12,
-    fontWeight: "500",
+    fontFamily: 'Milkyway',
     textAlign: "center",
   },
   rejectButton: {
-    backgroundColor: "#ff4757",
+    backgroundColor: Colors.light.darkPink,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -424,7 +461,7 @@ const styles = StyleSheet.create({
   rejectText: {
     color: "#fff",
     fontSize: 12,
-    fontWeight: "500",
+    fontFamily: 'Milkyway',
     textAlign: "center",
   },
   interestedButton: {
@@ -437,7 +474,7 @@ const styles = StyleSheet.create({
   interestedText: {
     color: "#fff",
     fontSize: 11,
-    fontWeight: "500",
+    fontFamily: 'Milkyway',
     textAlign: "center",
   },
   notInterestedButton: {
@@ -450,7 +487,7 @@ const styles = StyleSheet.create({
   notInterestedText: {
     color: Colors.light.textPurple,
     fontSize: 11,
-    fontWeight: "500",
+    fontFamily: 'Milkyway',
     textAlign: "center",
   },
   emptyState: {
@@ -462,5 +499,6 @@ const styles = StyleSheet.create({
     color: Colors.light.referenceText,
     fontSize: 16,
     textAlign: "center",
+    fontFamily: 'Milkyway',
   },
 });

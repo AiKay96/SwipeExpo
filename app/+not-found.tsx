@@ -1,6 +1,5 @@
 import { Link } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
-
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
@@ -21,9 +20,10 @@ export default function NotFoundScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0b0e16",
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
+    padding: 40,
   },
   link: {
     marginTop: 15,

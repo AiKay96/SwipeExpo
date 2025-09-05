@@ -65,26 +65,14 @@ interface Post {
 interface PostData {
   post: Post;
   is_saved: boolean;
-  reaction: "like" | "dislike" | null;
+  reaction: "like" | "dislike" | "none";  // Changed from null to "none"
 }
 
 interface ApiResponse {
-  posts: PostData[];
+  feed_posts: PostData[];  // Changed from 'posts' to 'feed_posts'
 }
 
-interface Category {
-  id: string;
-  name: string;
-  tags: string[];
-}
-
-interface CategoriesResponse {
-  categories: Category[];
-}
-
-/* ===========================
-   Category Modal (fetches by referenceId, unwraps { reference: {...} })
-=========================== */
+/* ===== Reference modal types ===== */
 type Reference = {
   id: string;
   category_id: string;
@@ -96,6 +84,21 @@ type Reference = {
 };
 type ReferenceEnvelope = { reference: Reference };
 
+/* ===== /me response ===== */
+type MeResponse = {
+  passedUsers: {
+    id: string;
+    mail: string;
+    username: string;
+    display_name: string;
+    bio: string | null;
+    profile_pic: string | null;
+  };
+};
+
+/* ===========================
+   Category Modal
+=========================== */
 interface CategoryModalProps {
   visible: boolean;
   onClose: () => void;
@@ -103,6 +106,18 @@ interface CategoryModalProps {
   categoryName?: string;
   token: string | null;
 }
+
+export type UserMe = {
+  id: string;
+  username: string;
+  display_name: string;
+  bio: string;
+  profile_pic: string | null;
+  friend_status: "not_friends" | "friends" | "pending";
+  is_following: boolean;
+  match_rate: number;
+  overlap_categories: string[];
+};
 
 function CategoryModal({
   visible,
@@ -230,7 +245,9 @@ function CategoryModal({
               <View>
                 <View style={{ alignItems: "center", marginBottom: 12 }}>
                   <Image
-                    source={data.image_url ? { uri: data.image_url } : PlaceholderReferenceImage}
+                    source={
+                      data.image_url ? { uri: data.image_url } : PlaceholderReferenceImage
+                    }
                     style={{ width: 280, height: 180, borderRadius: 12 }}
                     defaultSource={PlaceholderReferenceImage}
                   />
@@ -324,9 +341,9 @@ function PostItem({
   onToggleReaction,
 }: PostItemProps) {
   const post = postData.post;
-  const imageUrl = post.media[0]?.url;
+  const imageUrl = post.media[0]?.url || null;
   const router = useRouter();
-  
+
   const rotation = useSharedValue(0);
   const heartState = useSharedValue<HeartColor>("none");
   const [localHeart, setLocalHeart] = useState<HeartColor>("none");
@@ -347,14 +364,11 @@ function PostItem({
       const x = event.translationX;
 
       if (x > 30) {
-        // ✅ swipe right → like
         runOnJS(onToggleReaction)(post.id, postData.reaction, "like");
       } else if (x < -30) {
-        // ✅ swipe left → dislike
         runOnJS(onToggleReaction)(post.id, postData.reaction, "dislike");
       }
 
-      // reset rotation smoothly
       rotation.value = withSpring(0);
     });
 
@@ -365,6 +379,37 @@ function PostItem({
       { translateY: -200 },
     ],
   }));
+
+  const renderMainImage = () => {
+    // Remote image requires { uri }; defaultSource must be static.
+    if (imageUrl) {
+      return (
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.image}
+          defaultSource={PlaceholderImage}
+          onError={(e) => console.log("Image failed to load:", e.nativeEvent.error)}
+        />
+      );
+    }
+    return <Image source={PlaceholderImage} style={styles.image} />;
+  };
+
+  const renderProfileImage = () => {
+    if (post.profile_pic) {
+      return (
+        <Image
+          source={{ uri: post.profile_pic }}
+          style={styles.profileImage}
+          defaultSource={PlaceholderProfileImage}
+          onError={(e) => console.log("Profile image failed:", e.nativeEvent.error)}
+        />
+      );
+    }
+    return (
+      <Ionicons name="person-circle-outline" size={90} color={Colors.light.bioTextColor} />
+    );
+  };
 
   return (
     <View style={styles.postCard}>
@@ -402,16 +447,7 @@ function PostItem({
       {/* Second Line - Image */}
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.image, animatedStyle]}>
-          <Image
-            source={imageUrl ? imageUrl : PlaceholderImage}
-            // source={PlaceholderImage}
-            // style={StyleSheet.absoluteFill}
-            style={styles.image}
-            defaultSource={imageUrl ? imageUrl : PlaceholderImage}
-            onError={(e) =>
-              console.log("Image failed to load:", e.nativeEvent.error)
-            }
-          />
+          {renderMainImage()}
         </Animated.View>
       </GestureDetector>
 
@@ -419,42 +455,31 @@ function PostItem({
       <View style={styles.metaRow}>
         <View style={styles.iconGroup}>
           <TouchableOpacity style={styles.iconButton}>
-            <Ionicons 
-              name="chatbubble-outline" 
-              size={30} 
-              color={Colors.light.logoPink} 
+            <Ionicons
+              name="chatbubble-outline"
+              size={30}
+              color={Colors.light.logoPink}
             />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.iconButton}
             onPress={() => onToggleSave(post.id, postData.is_saved)}
           >
-            <Ionicons 
-              name={postData.is_saved ? "bookmark" : "bookmark-outline"} 
-              size={30} 
-              color={Colors.light.logoPink} 
+            <Ionicons
+              name={postData.is_saved ? "bookmark" : "bookmark-outline"}
+              size={30}
+              color={Colors.light.logoPink}
             />
           </TouchableOpacity>
         </View>
 
         {/* Fourth Line */}
         <View style={styles.fourthLine}>
-          <TouchableOpacity onPress={() => router.push(`/user/${post.username}`)}>
-            {post.profile_pic? (
-              <Image
-                source={post.profile_pic ? post.profile_pic : PlaceholderProfileImage}
-                style={styles.profileImage}
-                defaultSource={post.profile_pic ? post.profile_pic : PlaceholderProfileImage}
-                onError={(e) =>
-                  console.log("Image failed to load:", e.nativeEvent.error)
-                }
-              />
-            ) : (
-              <Ionicons name="person-circle-outline" size={90} color={Colors.light.bioTextColor} />
-            )}
-          </TouchableOpacity>
+          {renderProfileImage()}
           <View style={styles.fourthLineText}>
-            <Text style={{color: Colors.light.bioTextColor, fontFamily: 'Milkyway', fontSize: 24}}>{post.username}</Text>
+            <Text style={{ color: Colors.light.bioTextColor, fontFamily: "Milkyway", fontSize: 24 }}>
+              {post.username}
+            </Text>
             <TouchableOpacity onPress={onToggleExpand}>
               <Text
                 style={styles.descriptionText}
@@ -474,11 +499,35 @@ function PostItem({
           <TouchableOpacity
             onPress={() => post.reference_id && onOpenReference(post.reference_id, post.category_name)}
           >
-            <View style={{display: 'flex', flexDirection: 'row', backgroundColor: Colors.light.textPink, justifyContent: 'center', alignItems: 'center', height: 28, borderRadius: 14, gap: 2, paddingLeft: 4, paddingRight: 4,}}>
-              <Text style={{fontFamily: 'Milkyway', color: Colors.light.textPink, backgroundColor: Colors.light.cardBackgroundColor, width: 12, height: 12, borderRadius: 20, textAlign: 'center', fontSize: 12}}>
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                backgroundColor: Colors.light.textPink,
+                justifyContent: "center",
+                alignItems: "center",
+                height: 28,
+                borderRadius: 14,
+                gap: 2,
+                paddingLeft: 4,
+                paddingRight: 4,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "Milkyway",
+                  color: Colors.light.textPink,
+                  backgroundColor: Colors.light.cardBackgroundColor,
+                  width: 12,
+                  height: 12,
+                  borderRadius: 20,
+                  textAlign: "center",
+                  fontSize: 12,
+                }}
+              >
                 R
               </Text>
-              <Text style={{fontFamily: 'Milkyway', color: Colors.light.whiteText}}>
+              <Text style={{ fontFamily: "Milkyway", color: Colors.light.whiteText }}>
                 {post.reference_title}
               </Text>
             </View>
@@ -503,7 +552,7 @@ function PostItem({
 /* ===========================
    Screen
 =========================== */
-export default function CreatorScreen() {
+export default function CreatorScreen({ passedUsers }: { passedUsers: UserMe }) {
   const colorScheme = useColorScheme();
   const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
   const [posts, setPosts] = useState<PostData[]>([]);
@@ -515,15 +564,15 @@ export default function CreatorScreen() {
   const [selectedReferenceId, setSelectedReferenceId] = useState<string | null>(null);
   const [selectedCategoryName, setSelectedCategoryName] = useState<string>("");
   const [token, setToken] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [categories, setCategories] = useState<Category[]>([]);
+
+  const LIMIT = 15; // you can tweak this
 
   const getToken = async (): Promise<string | null> => {
     try {
       const value = await AsyncStorage.getItem("auth-key");
       if (value) {
         const parsed = JSON.parse(value);
-        return parsed.token;
+        return parsed.token ?? null;
       }
     } catch (error) {
       console.error("Error getting token from storage:", error);
@@ -531,72 +580,69 @@ export default function CreatorScreen() {
     return null;
   };
 
+  async function fetchMe(t: string): Promise<string> {
+    const res = await fetch(`${API_URL}/users/${passedUsers.username}`, {
+      headers: { Accept: "application/json", Authorization: `Bearer ${t}` },
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      throw new Error(`/me failed (${res.status}): ${txt || res.statusText}`);
+    }
+    const json = (await res.json()) as MeResponse;
+    if (!json?.passedUsers?.id) throw new Error("Missing user id in /me");
+    return json.passedUsers.id;
+  }
+
+  const myId = passedUsers.id;
+  console.log(myId);
+
+  async function fetchCreatorPostsFor(myId: string, t: string): Promise<ApiResponse> {
+    // console.log(passedUsers);
+    const url = `${API_URL}/users/${myId}/creator_posts?limit=${LIMIT}`;
+    const res = await fetch(url, {
+      headers: { Accept: "application/json", Authorization: `Bearer ${t}` },
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      throw new Error(`/users/{id}/creator_posts failed (${res.status}): ${txt || res.statusText}`);
+    }
+    return (await res.json()) as ApiResponse;
+  }
+
   const fetchCreatorFeed = async (isRefresh: boolean = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+  if (isRefresh) setRefreshing(true);
+  else setLoading(true);
 
-    try {
-      const t = await getToken();
-      if (!t) throw new Error("Token not found");
-      setToken(t);
+  try {
+    const t = await getToken();
+    if (!t) throw new Error("Token not found");
+    setToken(t);
 
-      const response = await fetch(`${API_URL}/creator-feed`, {
-        headers: { Authorization: `Bearer ${t}` },
-      });
+    // 1) Who am I?
+    
 
-      if (!response.ok) throw new Error("Failed to fetch creator feed");
-      const data: ApiResponse = await response.json();
-      setPosts(data.posts);
-    } catch (error) {
-      console.error("Error fetching creator feed:", error);
-      Alert.alert("Error", "Failed to load posts. Please try again.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(`${API_URL}/creator-feed/top-categories?limit=25`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch categories");
-
-      const data: CategoriesResponse = await response.json();
-      setCategories(data.categories); // ✅ store whole objects
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (token) {
-      fetchCategories();
-    }
-  }, [token]);
+    // 2) Get creator posts for me
+    const data = await fetchCreatorPostsFor(myId, t);
+    
+    // Convert "none" to null for consistency with your existing logic
+    const normalizedPosts = data.feed_posts.map(postData => ({
+      ...postData,
+      reaction: postData.reaction === "none" ? null : postData.reaction
+    }));
+    
+    setPosts(normalizedPosts);
+  } catch (error) {
+    console.error("Error fetching creator feed:", error);
+    Alert.alert("Error", "Failed to load posts. Please try again.");
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
   useEffect(() => {
     fetchCreatorFeed();
   }, []);
-
-  const handleCategoryPress = async (category: Category) => {
-    try {
-      const response = await fetch(`${API_URL}/creator-feed/${category.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch feed by category");
-
-      const data = await response.json();
-
-      // You already have `feed` or `postData` state — update it here
-      setPosts(data.posts ?? []); 
-    } catch (error) {
-      console.error("Error fetching feed by category:", error);
-    }
-  };
 
   const handleRefresh = () => fetchCreatorFeed(true);
 
@@ -627,10 +673,10 @@ export default function CreatorScreen() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to toggle save");
+        const txt = await response.text().catch(() => "");
+        throw new Error(`toggle save failed (${response.status}): ${txt || response.statusText}`);
       }
 
-      // Update state locally
       setPosts((prevPosts) =>
         prevPosts.map((p) =>
           p.post.id === postId ? { ...p, is_saved: !isSaved } : p
@@ -643,88 +689,95 @@ export default function CreatorScreen() {
   };
 
   // Toggle Reaction (Like / Unlike / Dislike)
-  const toggleReaction = async (postId: string, currentReaction: "like" | "dislike" | null, newReaction: "like" | "dislike") => {
-    if (!token) return;
+  const toggleReaction = async (
+  postId: string,
+  currentReaction: "like" | "dislike" | null,
+  newReaction: "like" | "dislike"
+) => {
+  if (!token) return;
 
-    try {
-      let endpoint = "";
-      let method = "POST";
+  try {
+    let endpoint = "";
+    let method = "POST";
 
-      if (currentReaction === newReaction) {
-        // same reaction tapped again -> unlike
-        endpoint = `${API_URL}/creator-posts/${postId}/unlike`;
-      } else {
-        // different reaction or null -> new reaction
-        endpoint = `${API_URL}/creator-posts/${postId}/${newReaction}`;
-      }
-
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to update reaction");
-
-      // Update UI optimistically
-      setPosts((prevPosts) =>
-        prevPosts.map((p) => {
-          if (p.post.id !== postId) return p;
-
-          let likeCount = p.post.like_count;
-          let dislikeCount = p.post.dislike_count;
-          let reaction: "like" | "dislike" | null = p.reaction;
-
-          if (currentReaction === newReaction) {
-            // undo
-            if (newReaction === "like") likeCount--;
-            if (newReaction === "dislike") dislikeCount--;
-            reaction = null;
-          } else {
-            // switch reaction
-            if (newReaction === "like") {
-              likeCount++;
-              if (currentReaction === "dislike") dislikeCount--;
-            }
-            if (newReaction === "dislike") {
-              dislikeCount++;
-              if (currentReaction === "like") likeCount--;
-            }
-            reaction = newReaction;
-          }
-
-          return {
-            ...p,
-            reaction,
-            post: {
-              ...p.post,
-              like_count: likeCount,
-              dislike_count: dislikeCount,
-            },
-          };
-        })
-      );
-    } catch (error) {
-      console.error("Error toggling reaction:", error);
-      Alert.alert("Error", "Failed to update reaction. Please try again.");
+    if (currentReaction === newReaction) {
+      endpoint = `${API_URL}/creator-posts/${postId}/unlike`;
+    } else {
+      endpoint = `${API_URL}/creator-posts/${postId}/${newReaction}`;
     }
-  };
+
+    const response = await fetch(endpoint, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const txt = await response.text().catch(() => "");
+      throw new Error(`reaction failed (${response.status}): ${txt || response.statusText}`);
+    }
+
+    // optimistic UI update
+    setPosts((prevPosts) =>
+      prevPosts.map((p) => {
+        if (p.post.id !== postId) return p;
+
+        let likeCount = p.post.like_count;
+        let dislikeCount = p.post.dislike_count;
+        let reaction: "like" | "dislike" | null = p.reaction;
+
+        if (currentReaction === newReaction) {
+          // undo
+          if (newReaction === "like") likeCount = Math.max(0, likeCount - 1);
+          if (newReaction === "dislike") dislikeCount = Math.max(0, dislikeCount - 1);
+          reaction = null;
+        } else {
+          // switch reaction
+          if (newReaction === "like") {
+            likeCount += 1;
+            if (currentReaction === "dislike") dislikeCount = Math.max(0, dislikeCount - 1);
+          }
+          if (newReaction === "dislike") {
+            dislikeCount += 1;
+            if (currentReaction === "like") likeCount = Math.max(0, likeCount - 1);
+          }
+          reaction = newReaction;
+        }
+
+        return {
+          ...p,
+          reaction,
+          post: {
+            ...p.post,
+            like_count: likeCount,
+            dislike_count: dislikeCount,
+          },
+        };
+      })
+    );
+  } catch (error) {
+    console.error("Error toggling reaction:", error);
+    Alert.alert("Error", "Failed to update reaction. Please try again.");
+  }
+};
 
   if (loading) {
     return (
       <View
         style={{
           flex: 1,
-          backgroundColor: Colors.light.background,
+          backgroundColor: Colors.light.mainBackgroundColor,
           alignItems: "center",
           justifyContent: "center",
           padding: 16,
         }}
       >
         <ActivityIndicator size="large" color={Colors.light.gradientPink} />
-        <Text style={{ marginTop: 10, color: Colors.light.whiteText }}>Loading posts...</Text>
+        <Text style={{ marginTop: 10, color: Colors.light.whiteText }}>
+          Loading posts...
+        </Text>
       </View>
     );
   }
@@ -737,35 +790,10 @@ export default function CreatorScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Categories | Horizontal Scroll */}
-        <View style={{ height: 30, marginVertical: 10 }}>
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesContainer}
-          >
-            <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-              {categories.map((category, index) => (
-                <View
-                  key={category.id}
-                  style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}
-                >
-                  <TouchableOpacity onPress={() => handleCategoryPress(category)}>
-                    <Text style={styles.categoryUpText}>{category.name}</Text>
-                  </TouchableOpacity>
-                  {index !== categories.length - 1 && <View style={styles.separator} />}
-                </View>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-
         {posts.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No posts available</Text>
-            <TouchableOpacity
-              onPress={handleRefresh} style={styles.refreshButton}
-            >
+            <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
               <Text style={styles.refreshButtonText}>Refresh</Text>
             </TouchableOpacity>
           </View>
@@ -821,12 +849,12 @@ const styles = StyleSheet.create({
   usernameText: {
     color: Colors.light.whiteText,
     fontSize: 18,
-    fontFamily: 'Milkyway',
+    fontFamily: "Milkyway",
     backgroundColor: Colors.light.logoPink,
     width: 175,
     height: 25,
     borderRadius: 20,
-    textAlign: 'center',
+    textAlign: "center",
     paddingTop: 2,
   },
   categoryUpText: {
@@ -835,13 +863,13 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     paddingHorizontal: 13,
     paddingTop: 3,
-    fontFamily: 'Milkyway',
+    fontFamily: "Milkyway",
   },
   postCard: {
     marginBottom: 24,
     borderRadius: 32,
     backgroundColor: Colors.light.cardBackgroundColor,
-    display: 'flex',
+    display: "flex",
     gap: 12,
 
     shadowColor: "#000",
@@ -849,7 +877,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
 
-    // Android shadow
     elevation: 3,
   },
   firstLine: {
@@ -865,7 +892,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     overflow: "hidden",
     backgroundColor: "#222",
-    objectFit: 'fill',
+    objectFit: "fill",
   },
   imageBelowFirstLine: {
     flexDirection: "row",
@@ -873,7 +900,7 @@ const styles = StyleSheet.create({
     gap: 8,
     borderRadius: 10,
     overflow: "hidden",
-    backgroundColor: '#6A4C93',
+    backgroundColor: "#6A4C93",
   },
   categoryText: {
     color: "#fff",
@@ -892,22 +919,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    position: 'relative',
+    position: "relative",
   },
   fourthLine: {
-    display: 'flex',
-    flexDirection: 'row',
+    display: "flex",
+    flexDirection: "row",
     gap: 10,
     paddingLeft: 16,
   },
   fourthLineText: {
-    display: 'flex',
-    flexDirection: 'column',
+    display: "flex",
+    flexDirection: "column",
   },
   iconGroup: {
     flexDirection: "row",
     gap: 16,
-    position: 'absolute',
+    position: "absolute",
     right: 10,
     top: -10,
   },
@@ -916,12 +943,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   likeContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center'
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
   likeCount: {
-    fontFamily: 'Milkyway',
+    fontFamily: "Milkyway",
     color: Colors.light.bioTextColor,
   },
   descriptionText: {
@@ -929,7 +956,7 @@ const styles = StyleSheet.create({
     color: Colors.light.bioTextColor,
     fontSize: 12,
     lineHeight: 20,
-    fontFamily: 'Milkyway',
+    fontFamily: "Milkyway",
     maxWidth: 226,
   },
   hashtagRow: {
@@ -947,11 +974,11 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     backgroundColor: Colors.light.mainBackgroundColor,
     borderRadius: 10,
-    fontFamily: 'Milkyway',
+    fontFamily: "Milkyway",
   },
   reactionHashtag: {
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderColor: "rgba(0, 0, 0, 0.1)",
   },
   loadingText: {
     marginTop: 10,
@@ -960,8 +987,8 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingTop: 100,
   },
   emptyText: {
@@ -977,25 +1004,25 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   refreshButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
     fontFamily: 'Milkyway',
   },
   // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContainer: {
-    width: '90%',
-    maxHeight: '80%',
+    width: "90%",
+    maxHeight: "80%",
   },
   modalCard: {
     borderRadius: 20,
     padding: 20,
-    position: 'relative',
+    position: "relative",
     backgroundColor: Colors.light.modalBackgroundColor,
 
     shadowColor: "#000",
@@ -1003,19 +1030,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
 
-    // Android shadow
     elevation: 3,
   },
   closeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 15,
     right: 15,
     width: 42,
     height: 42,
     borderRadius: 40,
     backgroundColor: Colors.light.cardBackgroundColor,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 1,
 
     shadowColor: "#000",
@@ -1023,36 +1049,35 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
 
-    // Android shadow
     elevation: 3,
   },
   modalCategoryTitle: {
     color: Colors.light.whiteText,
     fontSize: 18,
     marginBottom: 15,
-    fontFamily: 'Milkyway',
+    fontFamily: "Milkyway",
     backgroundColor: Colors.light.logoPink,
     maxWidth: 175,
-    textAlign: 'center',
+    textAlign: "center",
     borderRadius: 20,
   },
   modalImageContainer: {
-    width: '100%',
+    width: "100%",
     height: 400,
     borderRadius: 36,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 15,
   },
   modalImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   modalTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 24,
     marginBottom: 10,
-    fontFamily: 'Milkyway',
+    fontFamily: "Milkyway",
   },
   detailsContainer: {
     marginBottom: 20,
@@ -1064,13 +1089,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
 
-    // Android shadow
     elevation: 3,
   },
   detailRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 8,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
     paddingLeft: 6,
     paddingRight: 6,
   },
@@ -1078,17 +1102,17 @@ const styles = StyleSheet.create({
     color: Colors.light.bioTextColor,
     fontSize: 14,
     width: 80,
-    fontFamily: 'Milkyway',
+    fontFamily: "Milkyway",
   },
   detailValue: {
     color: Colors.light.logoPink,
     fontSize: 14,
     flex: 1,
-    fontFamily: 'Milkyway',
+    fontFamily: "Milkyway",
   },
   tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
     paddingLeft: 18,
     paddingTop: 8,
@@ -1103,6 +1127,6 @@ const styles = StyleSheet.create({
   tagText: {
     color: Colors.light.whiteText,
     fontSize: 12,
-    fontFamily: 'Milkyway',
+    fontFamily: "Milkyway",
   },
 });

@@ -3,7 +3,6 @@ import { Feather } from "@expo/vector-icons";
 import { Stack, usePathname, useRouter } from "expo-router";
 import { useContext, useEffect, useState } from "react";
 import { Image, Modal, Pressable, Text, TouchableOpacity, View, Alert, Platform, ActivityIndicator, StyleSheet } from "react-native";
-import SettingsScreen from "./settings";
 import { AuthContext } from "@/utils/authContext";
 
 const PlaceholderProfileImage = require("@/assets/images/broken-image-dark.png");
@@ -32,10 +31,10 @@ export default function ProfileLayout() {
   const [loading, setLoading] = useState(true);
 
   const getRoute = (name: string) => {
-    if (!user?.username) return "/profile";
+    if (!user?.username) return "/users";
     return name === "index"
-      ? `/profile/${user.username}`
-      : `/profile/${user.username}/${name}`;
+      ? `/users/${user.username}`
+      : `/users/${user.username}/${name}`;
   };
   const isActive = (name: string) => pathname === getRoute(name);
 
@@ -65,12 +64,11 @@ export default function ProfileLayout() {
     }, 1000);
   };
 
-  // Fetch user data from /me
   useEffect(() => {
     const fetchUser = async () => {
       if (!token) return;
       try {
-        const res = await fetch(`${API_URL}/me`, {
+        const res = await fetch(`${API_URL}/users/${user?.username}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -158,23 +156,7 @@ export default function ProfileLayout() {
             {user?.bio ?? "This user has no bio."}
           </Text>
         </View>
-        {/* <View>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={handleCalculateMatchRate}
-          >
-            <Text style={styles.buttonText}>Followed</Text>
-          </TouchableOpacity>
-        </View> */}
       </View>
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <SettingsScreen onClose={() => setModalVisible(false)} />
-      </Modal>
-      <Stack screenOptions={{ headerShown: false }} />
     </View>
   );
 }

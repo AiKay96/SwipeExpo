@@ -14,7 +14,6 @@ type AuthState = {
 };
 
 const authStorageKey = "auth-key";
-// const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const API_URL = Platform.OS === 'android' ? process.env.EXPO_PUBLIC_API_URL_ALTERNATIVE : process.env.EXPO_PUBLIC_API_URL;
 
 export const AuthContext = createContext<AuthState>({
