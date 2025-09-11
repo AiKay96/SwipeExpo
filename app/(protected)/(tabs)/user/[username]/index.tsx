@@ -55,7 +55,6 @@ export default function ProfileScreen() {
 
   if (loading) return <ActivityIndicator size="large" />;
   if (!user) return <Text>User not found</Text>;
-
   return (
     <CreatorScreen passedUsers={user} />
   );

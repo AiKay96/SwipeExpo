@@ -31,6 +31,7 @@ export const Colors = {
     modalBackgroundColor: '#dbdaec',
     profileText: '#a88dbb',
     darkPink: '#e0517c',
+    lightBlue: '#c5d4ff',
   },
   dark: {
     text: '#ECEDEE',

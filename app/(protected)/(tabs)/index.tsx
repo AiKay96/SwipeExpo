@@ -8,15 +8,16 @@ import {
   Platform,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  StyleSheet,
 } from "react-native";
 
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   interpolate,
@@ -26,7 +27,6 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { useRouter } from "expo-router";
 
 const API_URL =
   Platform.OS === "android"
@@ -228,13 +228,16 @@ function CategoryModal({
               </Text>
 
               <View>
-                <View style={{ alignItems: "center", marginBottom: 12 }}>
+                {data.image_url ? (
+                  <View style={{ alignItems: "center", marginBottom: 12 }}>
                   <Image
                     source={data.image_url ? { uri: data.image_url } : PlaceholderReferenceImage}
                     style={{ width: 280, height: 180, borderRadius: 12 }}
                     defaultSource={PlaceholderReferenceImage}
                   />
                 </View>
+                ): null}
+                
 
                 {!!data.description && (
                   <View style={{ marginBottom: 8 }}>

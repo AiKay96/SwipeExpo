@@ -594,17 +594,16 @@ export default function CreatorScreen({ passedUsers }: { passedUsers: UserMe }) 
   }
 
   const myId = passedUsers.id;
-  console.log(myId);
+  console.log(myId)
 
   async function fetchCreatorPostsFor(myId: string, t: string): Promise<ApiResponse> {
-    // console.log(passedUsers);
     const url = `${API_URL}/users/${myId}/creator_posts?limit=${LIMIT}`;
     const res = await fetch(url, {
       headers: { Accept: "application/json", Authorization: `Bearer ${t}` },
     });
     if (!res.ok) {
       const txt = await res.text().catch(() => "");
-      throw new Error(`/users/{id}/creator_posts failed (${res.status}): ${txt || res.statusText}`);
+      throw new Error(`Creator Posts failed (${res.status}): ${txt || res.statusText}`);
     }
     return (await res.json()) as ApiResponse;
   }

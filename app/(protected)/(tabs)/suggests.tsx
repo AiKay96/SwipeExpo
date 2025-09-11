@@ -1,24 +1,26 @@
+import HorizontalProgress from "@/components/HorizontalProgress";
 import { Colors } from "@/constants/Colors";
-import {
-  Text,
-  View,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  Platform,
-  ActivityIndicator,
-  StyleSheet,
-} from "react-native";
-import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "@/utils/authContext";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useContext, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
   interpolate,
   runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from "react-native-reanimated";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 const PlaceholderProfileImage = require("@/assets/images/profile-image-example.jpg");
 
@@ -38,17 +40,9 @@ export interface FriendUser {
   mutual_friend_count: number;
   match_rate: number;
   overlap_categories: string[];
-  profilePhoto?: string;
+  profile_pic?: string;
+  bio?: string;
 }
-
-const HorizontalProgress = ({ percentage }: { percentage: number }) => (
-  <View style={styles.progressContainer}>
-    <View style={styles.progressBackground}>
-      <View style={[styles.progressFill, { width: `${percentage}%` }]} />
-    </View>
-    <Text style={styles.percentageText}>{percentage}%</Text>
-  </View>
-);
 
 export default function SuggestsScreen() {
   const { token } = useContext(AuthContext);
@@ -250,34 +244,32 @@ function FriendCard({
     <View style={styles.requestCard}>
       <View style={styles.cardHeader}>
         <TouchableOpacity
-          style={
-            type === "request" ? styles.rejectButton : styles.notInterestedButton
-          }
+          style={[type === "request" ? styles.rejectButton : styles.notInterestedButton, styles.pressableHearts]}
           onPress={() => onReject(item.id)}
         >
+          <MaterialCommunityIcons name="heart-broken" size={74} color={Colors.light.logoPink} style={{position: 'absolute', top: -20, right: 4}} />
           <Text
             style={
               type === "request" ? styles.rejectText : styles.notInterestedText
             }
           >
-            {type === "request" ? "Decline" : "Skip"}
+            {type === "request" ? "Decline  " : "Skip"}
           </Text>
         </TouchableOpacity>
         <View style={styles.userInfo}>
-          <Text style={styles.username}>@{item.username}</Text>
+          <Text style={styles.username}>{item.display_name}</Text>
         </View>
         <TouchableOpacity
-          style={
-            type === "request" ? styles.acceptButton : styles.interestedButton
-          }
+          style={[ type === "request" ? styles.acceptButton : styles.interestedButton, styles.pressableHearts]}
           onPress={() => onAccept(item.id)}
         >
+          <Ionicons name="heart" size={74} color={Colors.light.logoPink} style={{position: 'absolute', top: -20, right: 4}} />
           <Text
             style={
               type === "request" ? styles.acceptText : styles.interestedText
             }
           >
-            {type === "request" ? "Accept" : "Add Friend"}
+            {type === "request" ? "Accept  " : "Add Friend"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -285,7 +277,7 @@ function FriendCard({
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.imageContainer, animatedStyle]}>
           <Image
-            source={{ uri: item.profilePhoto || "" }}
+            source={item.profile_pic? item.profile_pic : PlaceholderProfileImage}
             style={styles.profileImage}
             defaultSource={PlaceholderProfileImage}
           />
@@ -294,20 +286,33 @@ function FriendCard({
 
       <View style={styles.statsContainer}>
         <Text style={styles.mutualText}>
-          {item.mutual_friend_count} mutual friends
+          {item.username}
         </Text>
       </View>
+      {/* <View style={styles.statsContainer}>
+        <Text style={styles.mutualText}>
+          {item.mutual_friend_count} mutual friends
+        </Text>
+      </View> */}
+      {item.bio ? (
+        <View style={styles.statsContainer}>
+          <Text style={styles.mutualText}>
+            {item.bio}
+          </Text>
+        </View>
+      ) : null}
 
-      <View style={styles.categoriesContainer}>
-        {item.overlap_categories.map((category, index) => (
-          <View key={index} style={styles.categoryTag}>
-            <Text style={styles.categoryText}>{category}</Text>
-          </View>
-        ))}
-      </View>
+        {item.overlap_categories ? (
+        <View style={styles.categoriesContainer}>
+          {item.overlap_categories.map((category, index) => (
+            <View key={index} style={styles.categoryTag}>
+              <Text style={styles.categoryText}>{category}</Text>
+            </View>
+          ))}
+        </View>
+        ) : null}
 
       <View style={styles.matchContainer}>
-        <Text style={styles.matchLabel}>Interest Match</Text>
         <HorizontalProgress percentage={item.match_rate} />
       </View>
     </View>
@@ -316,6 +321,9 @@ function FriendCard({
 
 
 const styles = StyleSheet.create({
+  pressableHearts: {
+    
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.light.mainBackgroundColor,
@@ -338,8 +346,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   requestCard: {
-    backgroundColor: Colors.light.cardBackgroundColor,
-    borderRadius: 16,
+    backgroundColor: Colors.light.lightBlue,
+    borderRadius: 48,
     padding: 16,
     marginBottom: 16,
     
@@ -360,7 +368,7 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 16,
     fontFamily: 'Milkyway',
-    color: Colors.light.textPurple,
+    color: Colors.light.whiteText,
     textAlign: "center",
   },
   userInfo: {
@@ -372,9 +380,11 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 160,
+    height: 160,
+    borderRadius: 100,
+    borderWidth: 10,
+    borderColor: Colors.light.modalBackgroundColor,
   },
   statsContainer: {
     alignItems: "center",
@@ -439,7 +449,8 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   acceptButton: {
-    backgroundColor: Colors.light.gradientBlue,
+    position: 'relative',
+    // backgroundColor: Colors.light.gradientBlue,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -452,7 +463,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   rejectButton: {
-    backgroundColor: Colors.light.darkPink,
+    position: 'relative',
+    // backgroundColor: Colors.light.darkPink,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -465,7 +477,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   interestedButton: {
-    backgroundColor: Colors.light.gradientPink,
+    position: 'relative',
+    // backgroundColor: Colors.light.gradientPink,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
@@ -478,14 +491,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   notInterestedButton: {
-    backgroundColor: Colors.light.iconLight,
+    position: 'relative',
+    // backgroundColor: Colors.light.iconLight,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     minWidth: 80,
   },
   notInterestedText: {
-    color: Colors.light.textPurple,
+    color: Colors.light.whiteText,
     fontSize: 11,
     fontFamily: 'Milkyway',
     textAlign: "center",

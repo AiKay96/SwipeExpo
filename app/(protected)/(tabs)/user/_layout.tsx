@@ -4,6 +4,7 @@ import { Stack, usePathname, useRouter } from "expo-router";
 import { useContext, useEffect, useState } from "react";
 import { Image, Modal, Pressable, Text, TouchableOpacity, View, Alert, Platform, ActivityIndicator, StyleSheet } from "react-native";
 import { AuthContext } from "@/utils/authContext";
+import { useLocalSearchParams } from "expo-router";
 
 const PlaceholderProfileImage = require("@/assets/images/broken-image-dark.png");
 
@@ -30,12 +31,15 @@ export default function ProfileLayout() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const { username } = useLocalSearchParams<{ username: string }>();
+
   const getRoute = (name: string) => {
-    if (!user?.username) return "/users";
+    if (!username) return "/user";
     return name === "index"
-      ? `/users/${user.username}`
-      : `/users/${user.username}/${name}`;
+      ? { pathname: "/user/[username]", params: { username } }
+      : { pathname: `/user/[username]/${name}`, params: { username } };
   };
+
   const isActive = (name: string) => pathname === getRoute(name);
 
   const handleUnfriend = () => {
@@ -68,11 +72,8 @@ export default function ProfileLayout() {
     const fetchUser = async () => {
       if (!token) return;
       try {
-        const res = await fetch(`${API_URL}/users/${user?.username}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await fetch(`${API_URL}/users/${username}`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {
           console.log("Failed to fetch user:", await res.text());
@@ -132,8 +133,7 @@ export default function ProfileLayout() {
           }
         />
         <View style={{position: "absolute", top: 12, right: 18, display: 'flex', flexDirection: 'row', gap: 8}}>
-          <TouchableOpacity 
-            // onPress={() => setModalVisible(true)}
+          <TouchableOpacity
           >
             <Feather name="bookmark" size={28} color={Colors.light.textPurple} />
           </TouchableOpacity>
